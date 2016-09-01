@@ -6,16 +6,65 @@ import (
 	"os"
 )
 
-func main() {
-	dousage(false)
-	doversion()
-	if len(os.Args) >= 2 {
-		domake()
-		dorebuild()
-		doconst()
-	}
-	dousage(true)
+var (
+	cwd     string
+	path    string
+	file    string
+	command string
+)
 
+func main() {
+	// Get current path.
+	cwd, err := os.Getwd()
+	if err != nil {
+		fmt.Println("Error:", err.Error())
+		os.Exit(1)
+	}
+	// Path starts as current path.
+	path = cwd
+	// Parse arguments.
+	args := append([]string{}, os.Args[1:]...)
+	if len(args) == 0 {
+		dousage() // No args --> print usage.
+		os.Exit(0)
+	}
+	switch args[0] {
+	case "-v", "--version":
+		args = args[1:]
+		doversion()
+	case "-h", "--help":
+		args = args[1:]
+		dousage()
+	case "const", "make", "rebuild":
+		sub := args[0]
+		args = args[1:]
+		for len(args) > 0 {
+			if args[0] == "-f" {
+				if len(args) >= 2 {
+					file = args[1]
+					args = args[1:]
+				} else {
+					fmt.Println("Error: Missing value for -f")
+					os.Exit(1)
+				}
+				args = args[1:]
+			}
+			if len(args) == 1 {
+				path = args[0]
+				args = args[1:]
+			}
+		}
+		switch sub {
+		case "const":
+			doconst()
+		case "make":
+			domake()
+		case "rebuild":
+			dorebuild()
+		}
+	default:
+		dousage() // Unknown args --> print usage.
+	}
 	os.Exit(0)
 }
 
@@ -25,7 +74,6 @@ func domake() {
 	}
 	fmt.Println("domake") // TODO RM
 	gv.Make("")
-	os.Exit(0)
 }
 
 func dorebuild() {
@@ -34,7 +82,6 @@ func dorebuild() {
 	}
 	fmt.Println("dorebuild") // TODO RM
 	gv.Rebuild("")
-	os.Exit(0)
 }
 
 func doconst() {
@@ -43,29 +90,24 @@ func doconst() {
 	}
 	fmt.Println("doconst") // TODO RM
 	gv.Const("")
-	os.Exit(0)
 }
 
 func doversion() {
-	for _, v := range os.Args {
-		if v == "--version" {
-			fmt.Printf("gogetvers version %v\n", "TODO: FILL ME IN")
-			os.Exit(0)
-		}
-	}
+	fmt.Printf("gogetvers version %v\n", "TODO: FILL ME IN")
 }
 
-func dousage(force bool) {
+func dousage() {
 	usage := `
-gogetvers --version
+gogetvers -v|--version
     Print version information.
 
 gogetvers [-h|--help]
     Print help information.
 
-gogetvers make [PATH]
+gogetvers make [-f FILE] [PATH]
     Create version information for golang package at PATH; or
-    in current directory if PATH is omitted.
+    in current directory if PATH is omitted. FILE can be used
+	to specify the output location of the version information.
 
 gogetvers rebuild -f MANIFEST [PATH]
     Rebuild package structure described by MANIFEST at PATH;
@@ -77,14 +119,5 @@ gogetvers const [-f FILE] [PATH]
     be used to specify the file name; if omitted file will
     be named generated_gogetvers.go.
 `
-	for _, v := range os.Args {
-		if v == "-h" || v == "--help" {
-			fmt.Printf(usage)
-			os.Exit(0)
-		}
-	}
-	if len(os.Args) <= 1 || force {
-		fmt.Printf(usage)
-		os.Exit(0)
-	}
+	fmt.Printf(usage)
 }

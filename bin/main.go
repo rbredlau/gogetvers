@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	gv "gogetvers"
 	"os"
 )
 
@@ -23,6 +24,7 @@ func domake() {
 		return
 	}
 	fmt.Println("domake") // TODO RM
+	gv.Make("")
 	os.Exit(0)
 }
 
@@ -31,6 +33,7 @@ func dorebuild() {
 		return
 	}
 	fmt.Println("dorebuild") // TODO RM
+	gv.Rebuild("")
 	os.Exit(0)
 }
 
@@ -39,6 +42,7 @@ func doconst() {
 		return
 	}
 	fmt.Println("doconst") // TODO RM
+	gv.Const("")
 	os.Exit(0)
 }
 

@@ -43,7 +43,7 @@ func main() {
 	case "-h", "--help":
 		args = args[1:]
 		dousage()
-	case "const", "make", "rebuild":
+	case "const", "make", "print", "rebuild":
 		sub := args[0]
 		args = args[1:]
 		for len(args) > 0 {
@@ -68,13 +68,13 @@ func main() {
 			exitCode = 1
 			return
 		}
-		if sub != "make" {
+		if sub != "make" && sub != "print" {
 			if file != "" && !gv.IsFile(file) {
 				fmt.Println(fmt.Sprintf("Error: FILE is not a file: %v", file))
 				exitCode = 1
 				return
 			}
-		} else if sub == "make" && file == "" {
+		} else if (sub == "make" || sub == "print") && file == "" {
 			file = filepath.Join(path, "gogetvers.manifest")
 		}
 		writer = os.Stdout
@@ -83,6 +83,8 @@ func main() {
 			err = doconst()
 		case "make":
 			err = domake()
+		case "print":
+			err = doprint()
 		case "rebuild":
 			err = dorebuild()
 		}
@@ -98,6 +100,10 @@ func main() {
 
 func domake() error {
 	return gv.Make(path, file, writer)
+}
+
+func doprint() error {
+	return gv.Print(path, file, writer)
 }
 
 func dorebuild() error {
@@ -129,6 +135,11 @@ gogetvers make [-f FILE] [PATH]
 gogetvers rebuild -f MANIFEST [PATH]
     Rebuild package structure described by MANIFEST at PATH;
     or in current directory if PATH is omitted.
+
+gogetvers print [-f MANIFEST] [PATH]
+    Print a summary of the MANIFEST file in PATH.  PATH
+    defaults to current directory; MANIFEST defaults to
+    gogetvers.manifest.
 
 gogetvers const [-f FILE] [PATH]
     Create a go source file with version information at PATH

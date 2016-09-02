@@ -57,6 +57,10 @@ func (st *StatusWriter) Error(err error) {
 	st.Printf("ERROR: %v\n", err.Error())
 }
 
+func (st *StatusWriter) Warning(str string) {
+	st.Writeln("WARNING: " + str)
+}
+
 func (st *StatusWriter) Indent() {
 	if st == nil {
 		return
@@ -235,11 +239,8 @@ func GetGitInfo(path string) (*GitInfo, error) {
 		for _, v := range pieces {
 			v = strings.Trim(v, "\r\n ")
 			if v[0] == '*' {
-				/* TODO
 				pieces := strings.Split(v, " ")
-				rv.Branch = pieces[1]
-				*/
-				rv.Branch = v
+				rv.Branch = strings.Trim(pieces[1], " ")
 			}
 			break
 		}
@@ -280,7 +281,7 @@ func GetGitPath(path, stopDir string) (string, error) {
 }
 
 // Get dependency info for a depency.
-func GetDependencyInfo(pkg *PackageInfo) error {
+func GetDependencyInfo(pkg *PackageInfo, status *StatusWriter) error {
 	if pkg == nil {
 		return errors.New("pkg is nil")
 	}
@@ -290,27 +291,38 @@ func GetDependencyInfo(pkg *PackageInfo) error {
 	go func() {
 		defer func() { done <- true }()
 		for _, v := range pkg.Deps {
+			status.Printf("Dependency -> %v\n", v)
+			status.Indent()
 			info := &DependencyInfo{IsGo: true, IsGit: false, Name: v, DepDir: filepath.FromSlash(filepath.Join(pkg.GoSrcDir, v))}
 			if IsDir(info.DepDir) {
 				info.IsGo = false
 				gitDir, err := GetGitPath(info.DepDir, pkg.GoSrcDir)
 				if err == nil && gitDir != "" {
+					status.Writeln("git repository")
 					info.IsGit = true
 					info.GitDir = gitDir
+					status.Indent()
 					if _, ok := pkg.GitDirs[gitDir]; ok {
 						pkg.GitDirs[gitDir] = append(pkg.GitDirs[gitDir], info)
+						status.Writeln("previously discovered")
 					} else {
 						pkg.GitDirs[gitDir] = []*DependencyInfo{info}
 						pkg.GitInfos[gitDir], _ = GetGitInfo(filepath.Dir(gitDir))
+						status.WriteGitInfo(pkg.GitInfos[gitDir])
 					}
+					status.Outdent()
 				}
 			} else {
 				info.DepDir = ""
+				status.Writeln("golang standard package")
+
 			}
 			pkg.DepInfo[v] = info
 			if !info.IsGo && !info.IsGit {
+				status.Warning("Not a standard package and not a git repository; untrackable.")
 				pkg.Untrackable[v] = info
 			}
+			status.Outdent()
 		}
 	}()
 	// Wait for scan to complete
@@ -396,12 +408,14 @@ func GetPackageInfo(packagePath string, status *StatusWriter) (*PackageInfo, err
 	status.WriteGitInfo(rv.GitInfo)
 	//
 	status.Writeln("")
+	status.Indent()
 	status.Writeln("Getting dependency information...")
-	err = GetDependencyInfo(rv)
+	err = GetDependencyInfo(rv, status)
 	if err != nil {
 		status.Error(err)
 		return nil, err
 	}
+	status.Outdent()
 	return rv, nil
 }
 

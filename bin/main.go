@@ -61,6 +61,8 @@ func main() {
 			if len(args) == 1 {
 				path = args[0]
 				args = args[1:]
+			} else {
+				args = args[1:]
 			}
 		}
 		if !gv.IsDir(path) {
@@ -107,7 +109,7 @@ func doprint() error {
 }
 
 func dorebuild() error {
-	return gv.Rebuild(path, file)
+	return gv.Rebuild(path, file, writer)
 }
 
 func doconst() error {

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -12,6 +13,66 @@ import (
 	"syscall"
 	"time"
 )
+
+type StatusWriter struct {
+	Writer      io.Writer
+	IndentLevel int
+}
+
+func (st *StatusWriter) Printf(fmtstr string, args ...interface{}) {
+	st.Write(fmt.Sprintf(fmtstr, args...))
+}
+
+func (st *StatusWriter) Write(str string) {
+	if st == nil {
+		return
+	}
+	io.WriteString(st.Writer, strings.Repeat(" ", st.IndentLevel)+str)
+}
+
+func (st *StatusWriter) WriteGitInfo(gi *GitInfo) {
+	if st == nil {
+		return
+	}
+	st.Write("git-info -> ")
+	if gi == nil {
+		st.Writeln("nil")
+	} else {
+		st.Writeln("")
+		st.Printf("Home -> %v\n", gi.HomeDir)
+		st.Indent()
+		st.Printf("Hash -> %v\n", gi.Hash)
+		st.Printf("Branch -> %v\n", gi.Branch)
+		st.Printf("Origin -> %v\n", gi.OriginUrl)
+		st.Printf("Describe -> %v\n", gi.Describe)
+		st.Outdent()
+	}
+}
+
+func (st *StatusWriter) Writeln(str string) {
+	st.Write(str + "\n")
+}
+
+func (st *StatusWriter) Error(err error) {
+	st.Printf("ERROR: %v\n", err.Error())
+}
+
+func (st *StatusWriter) Indent() {
+	if st == nil {
+		return
+	}
+	st.IndentLevel = st.IndentLevel + 4
+}
+
+func (st *StatusWriter) Outdent() {
+	if st == nil {
+		return
+	}
+	st.IndentLevel = st.IndentLevel - 4
+	if st.IndentLevel < 0 {
+		st.IndentLevel = 0
+	}
+}
 
 type PackageInfo struct {
 	PackageDir  string                     // Package source directory; absolute path.
@@ -260,39 +321,50 @@ func GetDependencyInfo(pkg *PackageInfo) error {
 }
 
 // For a given packagePath returns a PackageInfo type.
-func GetPackageInfo(packagePath string) (*PackageInfo, error) {
+func GetPackageInfo(packagePath string, status *StatusWriter) (*PackageInfo, error) {
 	var rv *PackageInfo
 	// Get absolute path of sourceDir
+	status.Printf("Get package info for %v\n", packagePath)
 	packageDir, err := filepath.Abs(packagePath)
 	if err != nil {
+		status.Error(err)
 		return nil, err
 	}
 
 	// Get info for package at sourceDir
 	code, output, err := ExecProgram(packageDir, "go", []string{"list"})
 	if err != nil {
+		status.Error(err)
 		return nil, err
 	}
 	if code != 0 {
-		return nil, errors.New(fmt.Sprintf("go list returns-> %v", code))
+		err = errors.New(fmt.Sprintf("go list returns-> %v", code))
+		status.Error(err)
+		return nil, err
 	}
 	output = strings.Trim(output, "\r\n")
+	status.Printf("go list yields -> %v\n", output)
 
 	// We can now deduce go-src path.
 	goSrcDir := strings.Replace(filepath.ToSlash(packageDir), output, "", -1)
 	goSrcDir, err = filepath.Abs(goSrcDir)
 	if err != nil {
+		status.Error(err)
 		return nil, err
 	}
 	goSrcDir = strings.TrimRight(goSrcDir, "\\/")
+	status.Printf("go-src path -> %v\n", goSrcDir)
 
 	// Get dependency information for package at sourceDir
 	code, output, err = ExecProgram(packageDir, "go", []string{"list", "-f", "{{.Deps}}"})
 	if err != nil {
+		status.Error(err)
 		return nil, err
 	}
 	if code != 0 {
-		return rv, errors.New(fmt.Sprintf("go list returns-> %v", code))
+		err = errors.New(fmt.Sprintf("go list returns-> %v", code))
+		status.Error(err)
+		return rv, err
 	}
 	rv = &PackageInfo{PackageDir: packageDir, GoSrcDir: goSrcDir,
 		Deps: []string{}, DepInfo: make(map[string]*DependencyInfo),
@@ -301,21 +373,33 @@ func GetPackageInfo(packagePath string) (*PackageInfo, error) {
 		Untrackable: make(map[string]*DependencyInfo)}
 	output = strings.Trim(output, "\r\n[]")
 	lines := strings.Split(output, " ")
+	status.Indent()
 	for _, v := range lines {
+		status.Printf("dependency -> %v\n", v)
 		rv.Deps = append(rv.Deps, v)
 	}
+	status.Outdent()
 	//
+	status.Writeln("")
+	status.Write("Getting git-info for target package...")
 	rv.GitDir, err = GetGitPath(packageDir, goSrcDir)
 	if err != nil {
+		status.Error(err)
 		return nil, err
 	}
 	rv.GitInfo, err = GetGitInfo(filepath.Dir(rv.GitDir))
 	if err != nil {
+		status.Error(err)
 		return nil, err
 	}
+	status.Writeln("done")
+	status.WriteGitInfo(rv.GitInfo)
 	//
+	status.Writeln("")
+	status.Writeln("Getting dependency information...")
 	err = GetDependencyInfo(rv)
 	if err != nil {
+		status.Error(err)
 		return nil, err
 	}
 	return rv, nil
@@ -359,6 +443,11 @@ func ExecProgram(path, binary string, args []string) (int, string, error) {
 	// Start command
 	started := make(chan bool, 1)
 	go func() {
+		cw, err := os.Getwd()
+		if err != nil {
+			return
+		}
+		defer os.Chdir(cw)
 		os.Chdir(path)
 		err = cmd.Start()
 		started <- true

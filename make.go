@@ -2,7 +2,6 @@ package gogetvers
 
 import (
 	"encoding/json"
-	"fmt" // TODO RM
 	"io"
 	"os"
 )
@@ -14,8 +13,15 @@ type PackageSummary struct {
 	DotDeps       []string
 }
 
-func Make(sourceDir, outputFile string) error {
-	pkg, err := GetPackageInfo(sourceDir)
+// Inspects the go package located at sourceDir and creates
+// a manifest file at outputFile location.  If statusWriter
+// is non-nil then output will be written there.
+func Make(sourceDir, outputFile string, statusWriter io.Writer) error {
+	var sw *StatusWriter
+	if statusWriter != nil {
+		sw = &StatusWriter{Writer: statusWriter}
+	}
+	pkg, err := GetPackageInfo(sourceDir, sw)
 	if err != nil {
 		return err
 	}
@@ -36,39 +42,17 @@ func Make(sourceDir, outputFile string) error {
 		ser.DotDeps = append(ser.DotDeps, name)
 	}
 	//
-	done := make(chan bool, 2)
-	//
-	pr, pw := io.Pipe()
-	defer pr.Close()
-	defer pw.Close()
-	mw := io.MultiWriter(pw, os.Stdout)
-	//
-	go func() {
-		defer func() { done <- true }()
-		enc := json.NewEncoder(mw)
-		err = enc.Encode(ser)
-		if err != nil {
-			fmt.Println("err-> ", err.Error())
-		}
-	}()
-	//
-	decoded := &PackageSummary{}
-	go func() {
-		defer func() { done <- true }()
-		dec := json.NewDecoder(pr)
-		err = dec.Decode(decoded)
-		if err != nil {
-			fmt.Println("err-> ", err.Error())
-		}
-	}()
-	//
-	select {
-	case <-done:
+	fw, err := os.Create(outputFile)
+	if err != nil {
+		return err
 	}
-	select {
-	case <-done:
+	defer fw.Close()
+	//
+	enc := json.NewEncoder(fw)
+	err = enc.Encode(ser)
+	if err != nil {
+		return err
 	}
 	//
-	fmt.Printf("decoded-> %#v\n", decoded)
 	return nil
 }

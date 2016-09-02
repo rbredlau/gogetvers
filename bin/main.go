@@ -3,7 +3,9 @@ package main
 import (
 	"fmt"
 	gv "gogetvers"
+	"io"
 	"os"
+	"path/filepath"
 )
 
 var (
@@ -11,6 +13,7 @@ var (
 	path    string
 	file    string
 	command string
+	writer  io.Writer
 )
 
 func main() {
@@ -65,11 +68,16 @@ func main() {
 			exitCode = 1
 			return
 		}
-		if file != "" && !gv.IsFile(file) {
-			fmt.Println(fmt.Sprintf("Error: FILE is not a file: %v", file))
-			exitCode = 1
-			return
+		if sub != "make" {
+			if file != "" && !gv.IsFile(file) {
+				fmt.Println(fmt.Sprintf("Error: FILE is not a file: %v", file))
+				exitCode = 1
+				return
+			}
+		} else if sub == "make" && file == "" {
+			file = filepath.Join(path, "gogetvers.manifest")
 		}
+		writer = os.Stdout
 		switch sub {
 		case "const":
 			err = doconst()
@@ -89,7 +97,7 @@ func main() {
 }
 
 func domake() error {
-	return gv.Make(path, file)
+	return gv.Make(path, file, writer)
 }
 
 func dorebuild() error {
@@ -115,8 +123,8 @@ gogetvers [-h|--help]
 gogetvers make [-f FILE] [PATH]
     Create manifest information for golang package at PATH; or
     in current directory if PATH is omitted. FILE can be used
-	to specify the output location of the manifest information;
-	default FILE is gogetvers.manifest in the current directory.
+    to specify the output location of the manifest information;
+    default FILE is gogetvers.manifest in PATH.
 
 gogetvers rebuild -f MANIFEST [PATH]
     Rebuild package structure described by MANIFEST at PATH;

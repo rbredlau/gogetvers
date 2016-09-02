@@ -4,7 +4,7 @@ import (
 	"fmt"
 )
 
-func Rebuild(sourceDir string) error {
+func Rebuild(sourceDir, inputFile string) error {
 	fmt.Println("Rebuild!", sourceDir)
 	return nil
 }

@@ -4,7 +4,7 @@ import (
 	"fmt"
 )
 
-func Const(sourceDir string) error {
+func Const(sourceDir, outputFile string) error {
 	fmt.Println("Const!", sourceDir)
 	return nil
 }

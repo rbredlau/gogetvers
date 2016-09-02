@@ -14,11 +14,16 @@ var (
 )
 
 func main() {
+	exitCode := 0
+	defer func() {
+		os.Exit(exitCode)
+	}()
 	// Get current path.
 	cwd, err := os.Getwd()
 	if err != nil {
 		fmt.Println("Error:", err.Error())
-		os.Exit(1)
+		exitCode = 1
+		return
 	}
 	// Path starts as current path.
 	path = cwd
@@ -26,7 +31,7 @@ func main() {
 	args := append([]string{}, os.Args[1:]...)
 	if len(args) == 0 {
 		dousage() // No args --> print usage.
-		os.Exit(0)
+		return
 	}
 	switch args[0] {
 	case "-v", "--version":
@@ -45,7 +50,8 @@ func main() {
 					args = args[1:]
 				} else {
 					fmt.Println("Error: Missing value for -f")
-					os.Exit(1)
+					exitCode = 1
+					return
 				}
 				args = args[1:]
 			}
@@ -54,42 +60,44 @@ func main() {
 				args = args[1:]
 			}
 		}
+		if !gv.IsDir(path) {
+			fmt.Println(fmt.Sprintf("Error: PATH is not a directory: %v", path))
+			exitCode = 1
+			return
+		}
+		if file != "" && !gv.IsFile(file) {
+			fmt.Println(fmt.Sprintf("Error: FILE is not a file: %v", file))
+			exitCode = 1
+			return
+		}
 		switch sub {
 		case "const":
-			doconst()
+			err = doconst()
 		case "make":
-			domake()
+			err = domake()
 		case "rebuild":
-			dorebuild()
+			err = dorebuild()
+		}
+		if err != nil {
+			fmt.Println("Error:", err.Error())
+			exitCode = 1
+			return
 		}
 	default:
 		dousage() // Unknown args --> print usage.
 	}
-	os.Exit(0)
 }
 
-func domake() {
-	if os.Args[1] != "make" {
-		return
-	}
-	fmt.Println("domake") // TODO RM
-	gv.Make("")
+func domake() error {
+	return gv.Make(path, file)
 }
 
-func dorebuild() {
-	if os.Args[1] != "rebuild" {
-		return
-	}
-	fmt.Println("dorebuild") // TODO RM
-	gv.Rebuild("")
+func dorebuild() error {
+	return gv.Rebuild(path, file)
 }
 
-func doconst() {
-	if os.Args[1] != "const" {
-		return
-	}
-	fmt.Println("doconst") // TODO RM
-	gv.Const("")
+func doconst() error {
+	return gv.Const(path, file)
 }
 
 func doversion() {
@@ -105,9 +113,10 @@ gogetvers [-h|--help]
     Print help information.
 
 gogetvers make [-f FILE] [PATH]
-    Create version information for golang package at PATH; or
+    Create manifest information for golang package at PATH; or
     in current directory if PATH is omitted. FILE can be used
-	to specify the output location of the version information.
+	to specify the output location of the manifest information;
+	default FILE is gogetvers.manifest in the current directory.
 
 gogetvers rebuild -f MANIFEST [PATH]
     Rebuild package structure described by MANIFEST at PATH;

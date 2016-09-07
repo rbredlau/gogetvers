@@ -1,7 +1,8 @@
 package gogetvers
 
 import (
-	_ "errors"
+	"errors"
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
@@ -134,24 +135,42 @@ func Checkout(outputDir, inputFile string, statusWriter io.Writer) error {
 		}
 		if stat.gitClone {
 			sw.Printf("git clone -b %v %v %v\n", stat.wanted.Branch, stat.wanted.OriginUrl, filepath.Base(stat.wanted.HomeDir))
-			/*
-				code, _, err := ExecProgram(parentDir, "git", []string{"clone", "-b", stat.wanted.Branch, stat.wanted.OriginUrl, filepath.Base(stat.wanted.HomeDir)})
+			code, _, err := ExecProgram(stat.parentDir, "git", []string{"clone", "-b", stat.wanted.Branch, stat.wanted.OriginUrl, filepath.Base(stat.wanted.HomeDir)})
+			if err != nil {
+				sw.Error(err)
+				return err
+			}
+			if code != 0 {
+				err := errors.New(fmt.Sprintf("git clone returns -> %v", code))
+				sw.Error(err)
+				return err
+			}
+		} else {
+			if stat.switchBranch {
+				sw.Printf("git checkout %v\n", stat.wanted.Branch)
+				code, _, err := ExecProgram(stat.parentDir, "git", []string{"checkout", stat.wanted.Branch})
 				if err != nil {
 					sw.Error(err)
 					return err
 				}
 				if code != 0 {
-					err := errors.New(fmt.Sprintf("git clone returns -> %v", code))
+					err := errors.New(fmt.Sprintf("git checkout returns -> %v", code))
 					sw.Error(err)
 					return err
 				}
-			*/
-		} else {
-			if stat.switchBranch {
-				sw.Printf("git checkout %v\n", stat.wanted.Branch)
 			}
 			if stat.switchHash {
 				sw.Printf("git checkout %v\n", stat.wanted.Hash)
+				code, _, err := ExecProgram(stat.parentDir, "git", []string{"checkout", stat.wanted.Hash})
+				if err != nil {
+					sw.Error(err)
+					return err
+				}
+				if code != 0 {
+					err := errors.New(fmt.Sprintf("git checkout returns -> %v", code))
+					sw.Error(err)
+					return err
+				}
 			}
 		}
 		sw.Indent()

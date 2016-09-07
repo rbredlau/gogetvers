@@ -2,8 +2,6 @@ package gogetvers
 
 import (
 	"encoding/json"
-	"errors"
-	"fmt"
 	"io"
 	"os"
 	"strings"
@@ -119,24 +117,4 @@ func Print(sourceDir, inputFile string, statusWriter io.Writer) error {
 	sw.Printf("Dependencies-> %v\n", strings.Join(ser.DotDeps, " "))
 	//
 	return nil
-}
-
-// Opens the input file and decodes the manifest.
-func LoadManifest(inputFile string) (*PackageSummary, error) {
-	if !IsFile(inputFile) {
-		return nil, errors.New(fmt.Sprintf("Not a file @ %v", inputFile))
-	}
-	fr, err := os.Open(inputFile)
-	if err != nil {
-		return nil, err
-	}
-	defer fr.Close()
-	//
-	dec := json.NewDecoder(fr)
-	summary := &PackageSummary{}
-	err = dec.Decode(summary)
-	if err != nil {
-		return nil, err
-	}
-	return summary, nil
 }

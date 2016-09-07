@@ -2,9 +2,9 @@ package gogetvers
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -13,200 +13,6 @@ import (
 	"syscall"
 	"time"
 )
-
-type StatusWriter struct {
-	Writer      io.Writer
-	IndentLevel int
-}
-
-func (st *StatusWriter) Printf(fmtstr string, args ...interface{}) {
-	st.Write(fmt.Sprintf(fmtstr, args...))
-}
-
-func (st *StatusWriter) Write(str string) {
-	if st == nil {
-		return
-	}
-	io.WriteString(st.Writer, strings.Repeat(" ", st.IndentLevel)+str)
-}
-
-func (st *StatusWriter) WriteGitInfo(gi *GitInfo) {
-	if st == nil {
-		return
-	}
-	st.Write("git-info -> ")
-	if gi == nil {
-		st.Writeln("nil")
-	} else {
-		st.Writeln("")
-		st.Printf("Home -> %v\n", gi.HomeDir)
-		st.Indent()
-		st.Printf("Hash -> %v\n", gi.Hash)
-		st.Printf("Branch -> %v\n", gi.Branch)
-		st.Printf("Origin -> %v\n", gi.OriginUrl)
-		st.Printf("Describe -> %v\n", gi.Describe)
-		st.Outdent()
-	}
-}
-
-func (st *StatusWriter) Writeln(str string) {
-	st.Write(str + "\n")
-}
-
-func (st *StatusWriter) Error(err error) {
-	st.Printf("ERROR: %v\n", err.Error())
-}
-
-func (st *StatusWriter) Warning(str string) {
-	st.Writeln("WARNING: " + str)
-}
-
-func (st *StatusWriter) Indent() {
-	if st == nil {
-		return
-	}
-	st.IndentLevel = st.IndentLevel + 4
-}
-
-func (st *StatusWriter) Outdent() {
-	if st == nil {
-		return
-	}
-	st.IndentLevel = st.IndentLevel - 4
-	if st.IndentLevel < 0 {
-		st.IndentLevel = 0
-	}
-}
-
-type PackageInfo struct {
-	PackageDir  string                     // Package source directory; absolute path.
-	GitDir      string                     // Path to .git for package.
-	GitInfo     *GitInfo                   // Git info for package.
-	Deps        []string                   // List of package dependencies.
-	GoSrcDir    string                     // Absolute path of Go src that contains SourceDir.
-	DepInfo     map[string]*DependencyInfo // Map of dependency info.
-	GitDirs     map[string][]*DependencyInfo
-	GitInfos    map[string]*GitInfo
-	Untrackable map[string]*DependencyInfo
-}
-
-func (p *PackageInfo) StripGoSrcDir() {
-	if p == nil {
-		return
-	}
-	p.PackageDir = strings.TrimLeft(strings.Replace(p.PackageDir, p.GoSrcDir, "", -1), "\\/")
-	p.GitDir = strings.TrimLeft(strings.Replace(p.GitDir, p.GoSrcDir, "", -1), "\\/")
-	if p.GitInfo != nil {
-		p.GitInfo.StripGoSrcDir(p.GoSrcDir)
-	}
-	for _, v := range p.DepInfo {
-		v.StripGoSrcDir(p.GoSrcDir)
-	}
-	for _, v := range p.GitInfos {
-		v.StripGoSrcDir(p.GoSrcDir)
-	}
-}
-
-func (p *PackageInfo) ToSlash() {
-	if p == nil {
-		return
-	}
-	p.PackageDir = filepath.ToSlash(p.PackageDir)
-	p.GitDir = filepath.ToSlash(p.GitDir)
-	p.GoSrcDir = filepath.ToSlash(p.GoSrcDir)
-	if p.GitInfo != nil {
-		p.GitInfo.ToSlash()
-	}
-	for _, v := range p.DepInfo {
-		v.ToSlash()
-	}
-	for _, v := range p.GitInfos {
-		v.ToSlash()
-	}
-}
-
-func (p *PackageInfo) FromSlash() {
-	if p == nil {
-		return
-	}
-	p.PackageDir = filepath.FromSlash(p.PackageDir)
-	p.GitDir = filepath.FromSlash(p.GitDir)
-	p.GoSrcDir = filepath.FromSlash(p.GoSrcDir)
-	if p.GitInfo != nil {
-		p.GitInfo.FromSlash()
-	}
-	for _, v := range p.DepInfo {
-		v.FromSlash()
-	}
-	for _, v := range p.GitInfos {
-		v.FromSlash()
-	}
-}
-
-type DependencyInfo struct {
-	IsGo   bool   // True if not in GoSrcDir as a path.
-	IsGit  bool   // True if .git info was found.
-	Name   string // Name according to: go list -f {{.Deps}} from the parent package.
-	DepDir string // Path to dependency.
-	GitDir string // The .git directory.
-}
-
-func (d *DependencyInfo) StripGoSrcDir(path string) {
-	if d == nil {
-		return
-	}
-	d.DepDir = strings.TrimLeft(strings.Replace(d.DepDir, path, "", -1), "\\/")
-	d.GitDir = strings.TrimLeft(strings.Replace(d.GitDir, path, "", -1), "\\/")
-}
-
-func (d *DependencyInfo) ToSlash() {
-	if d == nil {
-		return
-	}
-	d.DepDir = filepath.ToSlash(d.DepDir)
-	d.GitDir = filepath.ToSlash(d.GitDir)
-}
-
-func (d *DependencyInfo) FromSlash() {
-	if d == nil {
-		return
-	}
-	d.DepDir = filepath.FromSlash(d.DepDir)
-	d.GitDir = filepath.FromSlash(d.GitDir)
-}
-
-type GitInfo struct {
-	HomeDir   string
-	ParentDir string
-	Branch    string
-	Hash      string
-	OriginUrl string
-	Describe  string
-}
-
-func (g *GitInfo) StripGoSrcDir(path string) {
-	if g == nil {
-		return
-	}
-	g.HomeDir = strings.TrimLeft(strings.Replace(g.HomeDir, path, "", -1), "\\/")
-	g.ParentDir = strings.TrimLeft(strings.Replace(g.ParentDir, path, "", -1), "\\/")
-}
-
-func (g *GitInfo) ToSlash() {
-	if g == nil {
-		return
-	}
-	g.HomeDir = filepath.ToSlash(g.HomeDir)
-	g.ParentDir = filepath.ToSlash(g.ParentDir)
-}
-
-func (g *GitInfo) FromSlash() {
-	if g == nil {
-		return
-	}
-	g.HomeDir = filepath.FromSlash(g.HomeDir)
-	g.ParentDir = filepath.FromSlash(g.ParentDir)
-}
 
 // Returns git info for path.
 func GetGitInfo(path string) (*GitInfo, error) {
@@ -224,6 +30,7 @@ func GetGitInfo(path string) (*GitInfo, error) {
 		tempIterator{"git", []string{"branch"}, &tmp.Branch},
 		tempIterator{"git", []string{"config", "--get", "remote.origin.url"}, &tmp.OriginUrl},
 		tempIterator{"git", []string{"rev-parse", "HEAD"}, &tmp.Hash},
+		tempIterator{"git", []string{"status", "--porcelain"}, &tmp.Status},
 		tempIterator{"git", []string{"describe", "--tags", "--abbrev=8", "--always", "--long"}, &tmp.Describe}}
 	//
 	for _, cmd := range commands {
@@ -254,6 +61,7 @@ func GetGitInfo(path string) (*GitInfo, error) {
 	if tmp.Describe != "" {
 		rv.Describe = tmp.Describe
 	}
+	fmt.Printf("GITSTATUS-> %v\n", tmp.Status) //TODO RM
 	return rv, nil
 }
 
@@ -285,49 +93,39 @@ func GetDependencyInfo(pkg *PackageInfo, status *StatusWriter) error {
 	if pkg == nil {
 		return errors.New("pkg is nil")
 	}
-	//
-	done := make(chan bool, 1)
-	// Do scan.
-	go func() {
-		defer func() { done <- true }()
-		for _, v := range pkg.Deps {
-			status.Printf("Dependency -> %v\n", v)
-			status.Indent()
-			info := &DependencyInfo{IsGo: true, IsGit: false, Name: v, DepDir: filepath.FromSlash(filepath.Join(pkg.GoSrcDir, v))}
-			if IsDir(info.DepDir) {
-				info.IsGo = false
-				gitDir, err := GetGitPath(info.DepDir, pkg.GoSrcDir)
-				if err == nil && gitDir != "" {
-					status.Writeln("git repository")
-					info.IsGit = true
-					info.GitDir = gitDir
-					status.Indent()
-					if _, ok := pkg.GitDirs[gitDir]; ok {
-						pkg.GitDirs[gitDir] = append(pkg.GitDirs[gitDir], info)
-						status.Writeln("previously discovered")
-					} else {
-						pkg.GitDirs[gitDir] = []*DependencyInfo{info}
-						pkg.GitInfos[gitDir], _ = GetGitInfo(filepath.Dir(gitDir))
-						status.WriteGitInfo(pkg.GitInfos[gitDir])
-					}
-					status.Outdent()
+	for _, v := range pkg.Deps {
+		status.Printf("Dependency -> %v\n", v)
+		status.Indent()
+		info := &DependencyInfo{IsGo: true, IsGit: false, Name: v, DepDir: filepath.FromSlash(filepath.Join(pkg.GoSrcDir, v))}
+		if IsDir(info.DepDir) {
+			info.IsGo = false
+			gitDir, err := GetGitPath(info.DepDir, pkg.GoSrcDir)
+			if err == nil && gitDir != "" {
+				status.Writeln("git repository")
+				info.IsGit = true
+				info.GitDir = gitDir
+				status.Indent()
+				if _, ok := pkg.GitDirs[gitDir]; ok {
+					pkg.GitDirs[gitDir] = append(pkg.GitDirs[gitDir], info)
+					status.Writeln("previously discovered")
+				} else {
+					pkg.GitDirs[gitDir] = []*DependencyInfo{info}
+					pkg.GitInfos[gitDir], _ = GetGitInfo(filepath.Dir(gitDir))
+					status.WriteGitInfo(pkg.GitInfos[gitDir])
 				}
-			} else {
-				info.DepDir = ""
-				status.Writeln("golang standard package")
+				status.Outdent()
+			}
+		} else {
+			info.DepDir = ""
+			status.Writeln("golang standard package")
 
-			}
-			pkg.DepInfo[v] = info
-			if !info.IsGo && !info.IsGit {
-				status.Warning("Not a standard package and not a git repository; untrackable.")
-				pkg.Untrackable[v] = info
-			}
-			status.Outdent()
 		}
-	}()
-	// Wait for scan to complete
-	select {
-	case <-done:
+		pkg.DepInfo[v] = info
+		if !info.IsGo && !info.IsGit {
+			status.Warning("Not a standard package and not a git repository; untrackable.")
+			pkg.Untrackable[v] = info
+		}
+		status.Outdent()
 	}
 	return nil
 }
@@ -493,6 +291,26 @@ func ExecProgram(path, binary string, args []string) (int, string, error) {
 	}
 
 	return exitCode, output, nil
+}
+
+// Opens the input file and decodes the manifest.
+func LoadManifest(inputFile string) (*PackageSummary, error) {
+	if !IsFile(inputFile) {
+		return nil, errors.New(fmt.Sprintf("Not a file @ %v", inputFile))
+	}
+	fr, err := os.Open(inputFile)
+	if err != nil {
+		return nil, err
+	}
+	defer fr.Close()
+	//
+	dec := json.NewDecoder(fr)
+	summary := &PackageSummary{}
+	err = dec.Decode(summary)
+	if err != nil {
+		return nil, err
+	}
+	return summary, nil
 }
 
 // Determines if path is a file; returns true if it is.

@@ -28,8 +28,12 @@ func Rebuild(outputDir, inputFile string, statusWriter io.Writer) error {
 	gitDirs[ser.TargetGit.HomeDir] = true
 	for v, _ := range gitDirs {
 		chkpath := filepath.Join(outputDir, v)
-		if IsDir(v) {
-			err := errors.New(fmt.Sprintf("directory already exists @ %v", chkpath))
+		abs, err := filepath.Abs(chkpath)
+		if err != nil {
+			return err
+		}
+		if IsDir(abs) {
+			err := errors.New(fmt.Sprintf("directory already exists @ %v", abs))
 			sw.Error(err)
 			return err
 		}

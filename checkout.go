@@ -2,11 +2,8 @@ package gogetvers
 
 import (
 	"errors"
-	"fmt"
 	"io"
-	_ "os"
 	"path/filepath"
-	"strings"
 )
 
 // Does a checkout of the manifest at inputFile.
@@ -21,42 +18,61 @@ func Checkout(outputDir, inputFile string, statusWriter io.Writer) error {
 		return err
 	}
 	//
+	// A local type to record each git, the current status, etc.
 	type gitstat struct {
-		git         *GitInfo
-		exists      bool
-		canCheckout bool
+		wanted    *GitInfo // What we want, i.e. what's in the manifest.
+		current   *GitInfo // What it currently is.
+		dirExists bool     // If wanted directory exists.
 	}
 	//
-	sw.Write("Checking for dependencies...")
-	stats := make(map[string]*gitstat)
-	gitsWithMods := []string{}
+	// Gather a summary of operations to perform by checking each wanted git.
+	sw.Write("Gathering summary...")
+	stats := make(map[string]*gitstat) // Gits by home directory.
 	for _, v := range ser.Gits {
-		stats[v.HomeDir] = &gitstat{git: v, exists: false, canCheckout: false}
+		stats[v.HomeDir] = &gitstat{wanted: v, dirExists: false}
 	}
-	stats[ser.TargetGit.HomeDir] = &gitstat{git: ser.TargetGit, exists: false, canCheckout: false}
+	stats[ser.TargetGit.HomeDir] = &gitstat{wanted: ser.TargetGit}
+	gitsWithMods := []string{} // gits with local modifications
+	dirsNotGits := []string{}  // directories that exist but are not a git clone
 	for _, v := range stats {
-		chkpath := filepath.Join(outputDir, v.git.HomeDir)
+		chkpath := filepath.Join(outputDir, v.wanted.HomeDir)
 		abs, err := filepath.Abs(chkpath)
 		if err != nil {
 			return err
 		}
 		if IsDir(abs) {
-			v.exists = true
-			currGit, err := GetGitInfo(abs)
-			if err != nil {
-				return err
+			v.dirExists = true
+			v.current, err = GetGitInfo(abs)
+			if err == nil && v.current != nil {
+				if v.current.Status != "" {
+					gitsWithMods = append(gitsWithMods, abs)
+				}
+			} else {
+				v.current = nil
+				dirsNotGits = append(dirsNotGits, abs)
 			}
-			v.canCheckout = currGit.Status == ""
 		} else {
-			v.exists = false
-			v.canCheckout = true
-		}
-		if !v.canCheckout {
-			gitsWithMods = append(gitsWithMods, abs)
+			v.dirExists = false
 		}
 	}
-	if len(gitsWithMods) > 0 {
-		return errors.New(fmt.Sprintf("The following gits have local modifications and can not be checked out:\n    %v", strings.Join(gitsWithMods, "\n    ")))
+	if len(gitsWithMods) > 0 || len(dirsNotGits) > 0 {
+		if len(gitsWithMods) > 0 {
+			sw.Writeln("The following gits have local modifications:")
+			sw.Indent()
+			for _, v := range gitsWithMods {
+				sw.Writeln(v)
+			}
+			sw.Outdent()
+		}
+		if len(dirsNotGits) > 0 {
+			sw.Writeln("The following directories already exist but are not a git clone:")
+			sw.Indent()
+			for _, v := range dirsNotGits {
+				sw.Writeln(v)
+			}
+			sw.Outdent()
+		}
+		return errors.New("Existing errors prevent further execution.")
 	}
 	sw.Writeln("done")
 	//

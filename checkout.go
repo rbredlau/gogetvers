@@ -3,6 +3,7 @@ package gogetvers
 import (
 	_ "errors"
 	"io"
+	"os"
 	"path/filepath"
 )
 
@@ -116,30 +117,30 @@ func Checkout(outputDir, inputFile string, statusWriter io.Writer) error {
 	sw.Indent()
 	for _, stat := range stats {
 		sw.WriteGitInfo(stat.wanted)
-		/*
-			parentDir := filepath.Join(outputDir, git.ParentDir)
-			if !IsDir(parentDir) {
-				err = os.MkdirAll(parentDir, 0770)
-				if err != nil {
-					sw.Error(err)
-					return err
-				}
-			}
-			sw.Printf("git clone -b %v %v %v\n", git.Branch, git.OriginUrl, filepath.Base(git.HomeDir))
-		*/
-		sw.Indent()
-		/*
-			code, _, err := ExecProgram(parentDir, "git", []string{"clone", "-b", git.Branch, git.OriginUrl, filepath.Base(git.HomeDir)})
+		if !IsDir(stat.parentDir) {
+			err = os.MkdirAll(stat.parentDir, 0770)
 			if err != nil {
 				sw.Error(err)
 				return err
 			}
-			if code != 0 {
-				err := errors.New(fmt.Sprintf("git clone returns -> %v", code))
-				sw.Error(err)
-				return err
-			}
-		*/
+		}
+		if stat.gitClone {
+			sw.Printf("git clone -b %v %v %v\n", stat.wanted.Branch, stat.wanted.OriginUrl, filepath.Base(stat.wanted.HomeDir))
+			/*
+				code, _, err := ExecProgram(parentDir, "git", []string{"clone", "-b", stat.wanted.Branch, stat.wanted.OriginUrl, filepath.Base(stat.wanted.HomeDir)})
+				if err != nil {
+					sw.Error(err)
+					return err
+				}
+				if code != 0 {
+					err := errors.New(fmt.Sprintf("git clone returns -> %v", code))
+					sw.Error(err)
+					return err
+				}
+			*/
+		} else {
+		}
+		sw.Indent()
 		sw.Writeln("done")
 		sw.Outdent()
 	}

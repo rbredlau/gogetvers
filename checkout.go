@@ -83,7 +83,7 @@ func Checkout(outputDir, inputFile string, statusWriter io.Writer) error {
 			}
 			sw.Outdent()
 		}
-		//		return errors.New("Existing errors prevent further execution.") // TODO PUT ME BACK IN
+		return errors.New("Existing errors prevent further execution.")
 	}
 	sw.Writeln("done")
 	//

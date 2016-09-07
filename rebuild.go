@@ -21,12 +21,16 @@ func Rebuild(outputDir, inputFile string, statusWriter io.Writer) error {
 	}
 	//
 	sw.Write("Checking for directory collisions...")
-	gitDirs := make(map[string]bool)
+	//
+	// Combine all gits by their home directory; this is in case
+	// TargetGit is the same git as a dependency.
+	gits := make(map[string]*GitInfo)
 	for _, v := range ser.Gits {
-		gitDirs[v.HomeDir] = true
+		gits[v.HomeDir] = v
 	}
-	gitDirs[ser.TargetGit.HomeDir] = true
-	for v, _ := range gitDirs {
+	// Check each directory and see if already exists; return error if it does.
+	gits[ser.TargetGit.HomeDir] = ser.TargetGit
+	for v, _ := range gits {
 		chkpath := filepath.Join(outputDir, v)
 		abs, err := filepath.Abs(chkpath)
 		if err != nil {
@@ -40,9 +44,10 @@ func Rebuild(outputDir, inputFile string, statusWriter io.Writer) error {
 	}
 	sw.Writeln("done")
 	//
+	// Now clone each git into the proper directory.
 	sw.Writeln("Cloning gits...")
 	sw.Indent()
-	for _, git := range ser.Gits {
+	for _, git := range gits {
 		sw.WriteGitInfo(git)
 		parentDir := filepath.Join(outputDir, git.ParentDir)
 		if !IsDir(parentDir) {

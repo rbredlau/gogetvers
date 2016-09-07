@@ -87,6 +87,7 @@ func Checkout(outputDir, inputFile string, statusWriter io.Writer) error {
 	sw.Writeln("done")
 	//
 	// Print the summary
+	sw.Writeln("")
 	sw.Writeln("What will be done:")
 	sw.Indent()
 	for _, stat := range stats {
@@ -113,10 +114,17 @@ func Checkout(outputDir, inputFile string, statusWriter io.Writer) error {
 	}
 	sw.Outdent()
 	//
-	sw.Writeln("Performing checkout...")
+	sw.Writeln("")
+	sw.Writeln("Performing work...")
 	sw.Indent()
 	for _, stat := range stats {
-		sw.WriteGitInfo(stat.wanted)
+		sw.Writeln(stat.dir)
+		if !stat.gitClone && !stat.switchBranch && !stat.switchHash {
+			sw.Indent()
+			sw.Writeln("skipping")
+			sw.Outdent()
+			continue
+		}
 		if !IsDir(stat.parentDir) {
 			err = os.MkdirAll(stat.parentDir, 0770)
 			if err != nil {
@@ -139,12 +147,18 @@ func Checkout(outputDir, inputFile string, statusWriter io.Writer) error {
 				}
 			*/
 		} else {
+			if stat.switchBranch {
+				sw.Printf("git checkout %v\n", stat.wanted.Branch)
+			}
+			if stat.switchHash {
+				sw.Printf("git checkout %v\n", stat.wanted.Hash)
+			}
 		}
 		sw.Indent()
 		sw.Writeln("done")
 		sw.Outdent()
 	}
-	sw.Writeln("done")
 	sw.Outdent()
+	sw.Writeln("done")
 	return nil
 }

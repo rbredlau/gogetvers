@@ -34,11 +34,13 @@ func GetGitInfo(path string) (*GitInfo, error) {
 		tempIterator{"git", []string{"describe", "--tags", "--abbrev=8", "--always", "--long"}, &tmp.Describe}}
 	//
 	for _, cmd := range commands {
+		fmt.Println("git", cmd.command, cmd.args) //TODO RM
 		code, output, err := ExecProgram(path, cmd.command, cmd.args)
 		if err == nil && code == 0 {
 			output = strings.Trim(output, "\r\n")
 			*cmd.target = output
 		}
+		fmt.Println(*cmd.target) //TODO RM
 	}
 	//
 	if tmp.Branch != "" {

@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"os"
+	_ "os"
 	"path/filepath"
 	"strings"
 )
@@ -58,33 +58,36 @@ func Checkout(outputDir, inputFile string, statusWriter io.Writer) error {
 	if len(gitsWithMods) > 0 {
 		return errors.New(fmt.Sprintf("The following gits have local modifications and can not be checked out:\n    %v", strings.Join(gitsWithMods, "\n    ")))
 	}
-	return errors.New("TODO FINISH ME") //TODO RM
 	sw.Writeln("done")
 	//
-	sw.Writeln("Cloning gits...")
+	sw.Writeln("Performing checkout...")
 	sw.Indent()
 	for _, git := range ser.Gits {
 		sw.WriteGitInfo(git)
-		parentDir := filepath.Join(outputDir, git.ParentDir)
-		if !IsDir(parentDir) {
-			err = os.MkdirAll(parentDir, 0770)
+		/*
+			parentDir := filepath.Join(outputDir, git.ParentDir)
+			if !IsDir(parentDir) {
+				err = os.MkdirAll(parentDir, 0770)
+				if err != nil {
+					sw.Error(err)
+					return err
+				}
+			}
+			sw.Printf("git clone -b %v %v %v\n", git.Branch, git.OriginUrl, filepath.Base(git.HomeDir))
+		*/
+		sw.Indent()
+		/*
+			code, _, err := ExecProgram(parentDir, "git", []string{"clone", "-b", git.Branch, git.OriginUrl, filepath.Base(git.HomeDir)})
 			if err != nil {
 				sw.Error(err)
 				return err
 			}
-		}
-		sw.Printf("git clone -b %v %v %v\n", git.Branch, git.OriginUrl, filepath.Base(git.HomeDir))
-		sw.Indent()
-		code, _, err := ExecProgram(parentDir, "git", []string{"clone", "-b", git.Branch, git.OriginUrl, filepath.Base(git.HomeDir)})
-		if err != nil {
-			sw.Error(err)
-			return err
-		}
-		if code != 0 {
-			err := errors.New(fmt.Sprintf("git clone returns -> %v", code))
-			sw.Error(err)
-			return err
-		}
+			if code != 0 {
+				err := errors.New(fmt.Sprintf("git clone returns -> %v", code))
+				sw.Error(err)
+				return err
+			}
+		*/
 		sw.Writeln("done")
 		sw.Outdent()
 	}

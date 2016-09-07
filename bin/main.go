@@ -43,10 +43,12 @@ func main() {
 	case "-h", "--help":
 		args = args[1:]
 		dousage()
-	case "const", "make", "print", "rebuild":
+	case "checkout", "const", "make", "print", "rebuild":
 		sub := args[0]
 		args = args[1:]
+		parsedPath := false
 		for len(args) > 0 {
+			curr := len(args)
 			if args[0] == "-f" {
 				if len(args) >= 2 {
 					file = args[1]
@@ -61,9 +63,15 @@ func main() {
 			if len(args) == 1 {
 				path = args[0]
 				args = args[1:]
-			} else {
+				parsedPath = true
+			}
+			if curr == len(args) {
+				// Nothing done, so remove one to avoid infinite loop
 				args = args[1:]
 			}
+		}
+		if sub == "checkout" && !parsedPath {
+			// TODO USE GOPATH
 		}
 		if !gv.IsDir(path) {
 			fmt.Println(fmt.Sprintf("Error: PATH is not a directory: %v", path))
@@ -81,6 +89,8 @@ func main() {
 		}
 		writer = os.Stdout
 		switch sub {
+		case "checkout":
+			err = docheckout()
 		case "const":
 			err = doconst()
 		case "make":
@@ -106,6 +116,10 @@ func domake() error {
 
 func doprint() error {
 	return gv.Print(path, file, writer)
+}
+
+func docheckout() error {
+	return gv.Checkout(path, file, writer)
 }
 
 func dorebuild() error {
@@ -136,7 +150,19 @@ gogetvers make [-f FILE] [PATH]
 
 gogetvers rebuild -f MANIFEST [PATH]
     Rebuild package structure described by MANIFEST at PATH;
-    or in current directory if PATH is omitted.
+    or in current directory if PATH is omitted.  If any of
+    the dependencies described by MANIFEST already exists on
+    the file system then no work is performed.
+
+gogetvers checkout -f MANIFEST [PATH]
+    Does the same as the 'rebuild' command with the following
+    differences:
+        + Uses GOPATH environment variable if PATH is omitted.
+        + Will attempt to checkout the appropriate hash of
+          a git dependency if it already exists on the file
+          system.
+    If any of the dependencies have local modifications then
+    no work is performed.
 
 gogetvers print [-f MANIFEST] [PATH]
     Print a summary of the MANIFEST file in PATH.  PATH

@@ -6,14 +6,13 @@ import (
 )
 
 type GitInfo struct {
-	HomeDir          string
-	ParentDir        string
-	Branch           string
-	Hash             string
-	OriginUrl        string
-	Describe         string
-	Status           string
-	HasModifications bool
+	HomeDir   string
+	ParentDir string
+	Branch    string
+	Hash      string
+	OriginUrl string
+	Describe  string
+	Status    string
 }
 
 func (g *GitInfo) StripGoSrcDir(path string) {

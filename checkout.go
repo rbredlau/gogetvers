@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 // Does a checkout of the manifest at inputFile.
@@ -27,11 +28,12 @@ func Checkout(outputDir, inputFile string, statusWriter io.Writer) error {
 	}
 	//
 	sw.Write("Checking for dependencies...")
-	stats := make(map[*GitInfo]*gitstat)
+	stats := make(map[string]*gitstat)
+	gitsWithMods := []string{}
 	for _, v := range ser.Gits {
-		stats[v] = &gitstat{git: v, exists: false, canCheckout: false}
+		stats[v.HomeDir] = &gitstat{git: v, exists: false, canCheckout: false}
 	}
-	stats[ser.TargetGit] = &gitstat{git: ser.TargetGit, exists: false, canCheckout: false}
+	stats[ser.TargetGit.HomeDir] = &gitstat{git: ser.TargetGit, exists: false, canCheckout: false}
 	for _, v := range stats {
 		chkpath := filepath.Join(outputDir, v.git.HomeDir)
 		abs, err := filepath.Abs(chkpath)
@@ -44,8 +46,17 @@ func Checkout(outputDir, inputFile string, statusWriter io.Writer) error {
 			if err != nil {
 				return err
 			}
-			sw.Printf("SWGITSTATS-> %v\n", currGit.Status) //TODO RM
+			v.canCheckout = currGit.Status == ""
+		} else {
+			v.exists = false
+			v.canCheckout = true
 		}
+		if !v.canCheckout {
+			gitsWithMods = append(gitsWithMods, abs)
+		}
+	}
+	if len(gitsWithMods) > 0 {
+		return errors.New(fmt.Sprintf("The following gits have local modifications and can not be checked out:\n    %v", strings.Join(gitsWithMods, "\n    ")))
 	}
 	return errors.New("TODO FINISH ME") //TODO RM
 	sw.Writeln("done")

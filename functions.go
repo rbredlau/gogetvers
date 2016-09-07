@@ -61,7 +61,9 @@ func GetGitInfo(path string) (*GitInfo, error) {
 	if tmp.Describe != "" {
 		rv.Describe = tmp.Describe
 	}
-	fmt.Printf("GITSTATUS-> %v\n", tmp.Status) //TODO RM
+	if tmp.Status != "" {
+		rv.Status = tmp.Status
+	}
 	return rv, nil
 }
 

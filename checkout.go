@@ -55,6 +55,8 @@ func Checkout(outputDir, inputFile string, statusWriter io.Writer) error {
 			v.dirExists = false
 		}
 	}
+	//
+	// If either gitsWithMods or dirsNotGits is non-empty then abort.
 	if len(gitsWithMods) > 0 || len(dirsNotGits) > 0 {
 		if len(gitsWithMods) > 0 {
 			sw.Writeln("The following gits have local modifications:")
@@ -76,10 +78,15 @@ func Checkout(outputDir, inputFile string, statusWriter io.Writer) error {
 	}
 	sw.Writeln("done")
 	//
+	// Print the summary
+	for _, stat := range stats {
+		sw.WriteGitInfo(stat.wanted)
+	}
+	//
 	sw.Writeln("Performing checkout...")
 	sw.Indent()
-	for _, git := range ser.Gits {
-		sw.WriteGitInfo(git)
+	for _, stat := range stats {
+		sw.WriteGitInfo(stat.wanted)
 		/*
 			parentDir := filepath.Join(outputDir, git.ParentDir)
 			if !IsDir(parentDir) {

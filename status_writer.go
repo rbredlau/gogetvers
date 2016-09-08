@@ -22,7 +22,7 @@ func (st *StatusWriter) Write(str string) {
 	io.WriteString(st.Writer, strings.Repeat(" ", st.IndentLevel)+str)
 }
 
-func (st *StatusWriter) WriteGitInfo(gi *GitInfo) {
+func (st *StatusWriter) WriteGit(gi *Git) {
 	if st == nil {
 		return
 	}

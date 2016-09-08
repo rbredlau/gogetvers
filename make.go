@@ -9,8 +9,8 @@ import (
 
 type PackageSummary struct {
 	TargetPackage string
-	TargetGit     *GitInfo
-	Gits          []*GitInfo
+	TargetGit     *Git
+	Gits          []*Git
 	DotDeps       []string
 }
 
@@ -34,18 +34,18 @@ func Make(sourceDir, outputFile string, statusWriter io.Writer) error {
 	ser := &PackageSummary{}
 	//
 	ser.TargetPackage = pkg.PackageDir
-	ser.TargetGit = pkg.GitInfo
+	ser.TargetGit = pkg.Git
 	sw.Printf("Target package: %v\n", ser.TargetPackage)
 	sw.Write("Target ")
-	sw.WriteGitInfo(ser.TargetGit)
+	sw.WriteGit(ser.TargetGit)
 	//
-	ser.Gits = []*GitInfo{}
+	ser.Gits = []*Git{}
 	ser.DotDeps = []string{}
 	sw.Writeln("Dependency gits:")
 	sw.Indent()
-	for _, git := range pkg.GitInfos {
+	for _, git := range pkg.Gits {
 		ser.Gits = append(ser.Gits, git)
-		sw.WriteGitInfo(git)
+		sw.WriteGit(git)
 	}
 	sw.Outdent()
 	sw.Outdent()
@@ -104,12 +104,12 @@ func Print(sourceDir, inputFile string, statusWriter io.Writer) error {
 	//
 	sw.Printf("Target package: %v\n", ser.TargetPackage)
 	sw.Write("Target ")
-	sw.WriteGitInfo(ser.TargetGit)
+	sw.WriteGit(ser.TargetGit)
 	//
 	sw.Writeln("Dependency gits:")
 	sw.Indent()
 	for _, git := range ser.Gits {
-		sw.WriteGitInfo(git)
+		sw.WriteGit(git)
 	}
 	sw.Outdent()
 	sw.Outdent()

@@ -22,9 +22,9 @@ func Checkout(outputDir, inputFile string, statusWriter io.Writer) error {
 	//
 	// A local type to record each git, the current status, etc.
 	type gitstat struct {
-		wanted     *GitInfo // What we want, i.e. what's in the manifest.
-		current    *GitInfo // What it currently is.
-		dirExists  bool     // If wanted directory exists.
+		wanted     *Git // What we want, i.e. what's in the manifest.
+		current    *Git // What it currently is.
+		dirExists  bool // If wanted directory exists.
 		dir        string
 		parentDir  string
 		switchHash bool
@@ -48,7 +48,7 @@ func Checkout(outputDir, inputFile string, statusWriter io.Writer) error {
 		}
 		if IsDir(abs) {
 			v.dirExists = true
-			v.current, err = GetGitInfo(abs)
+			v.current, err = GetGit(abs)
 			if err == nil && v.current != nil {
 				if v.current.Status != "" {
 					gitsWithMods = append(gitsWithMods, abs)

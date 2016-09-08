@@ -15,12 +15,12 @@ import (
 )
 
 // Returns git info for path.
-func GetGitInfo(path string) (*GitInfo, error) {
+func GetGit(path string) (*Git, error) {
 	if !IsDir(path) {
 		return nil, errors.New(fmt.Sprintf("not a path @ %v", path))
 	}
-	rv := &GitInfo{HomeDir: path, ParentDir: filepath.Dir(path)}
-	tmp := &GitInfo{}
+	rv := &Git{HomeDir: path, ParentDir: filepath.Dir(path)}
+	tmp := &Git{}
 	type tempIterator struct {
 		command string
 		args    []string
@@ -113,8 +113,8 @@ func GetDependencyInfo(pkg *PackageInfo, status *StatusWriter) error {
 					status.Writeln("previously discovered")
 				} else {
 					pkg.GitDirs[gitDir] = []*DependencyInfo{info}
-					pkg.GitInfos[gitDir], _ = GetGitInfo(filepath.Dir(gitDir))
-					status.WriteGitInfo(pkg.GitInfos[gitDir])
+					pkg.Gits[gitDir], _ = GetGit(filepath.Dir(gitDir))
+					status.WriteGit(pkg.Gits[gitDir])
 				}
 				status.Outdent()
 			}
@@ -182,7 +182,7 @@ func GetPackageInfo(packagePath string, status *StatusWriter) (*PackageInfo, err
 	rv = &PackageInfo{PackageDir: packageDir, GoSrcDir: goSrcDir,
 		Deps: []string{}, DepInfo: make(map[string]*DependencyInfo),
 		GitDirs:     make(map[string][]*DependencyInfo),
-		GitInfos:    make(map[string]*GitInfo),
+		Gits:        make(map[string]*Git),
 		Untrackable: make(map[string]*DependencyInfo)}
 	output = strings.Trim(output, "\r\n[]")
 	lines := strings.Split(output, " ")
@@ -200,13 +200,13 @@ func GetPackageInfo(packagePath string, status *StatusWriter) (*PackageInfo, err
 		status.Error(err)
 		return nil, err
 	}
-	rv.GitInfo, err = GetGitInfo(filepath.Dir(rv.GitDir))
+	rv.Git, err = GetGit(filepath.Dir(rv.GitDir))
 	if err != nil {
 		status.Error(err)
 		return nil, err
 	}
 	status.Writeln("done")
-	status.WriteGitInfo(rv.GitInfo)
+	status.WriteGit(rv.Git)
 	//
 	status.Writeln("")
 	status.Indent()

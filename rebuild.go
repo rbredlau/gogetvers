@@ -24,7 +24,7 @@ func Rebuild(outputDir, inputFile string, statusWriter io.Writer) error {
 	//
 	// Combine all gits by their home directory; this is in case
 	// TargetGit is the same git as a dependency.
-	gits := make(map[string]*GitInfo)
+	gits := make(map[string]*Git)
 	for _, v := range ser.Gits {
 		gits[v.HomeDir] = v
 	}
@@ -48,7 +48,7 @@ func Rebuild(outputDir, inputFile string, statusWriter io.Writer) error {
 	sw.Writeln("Cloning gits...")
 	sw.Indent()
 	for _, git := range gits {
-		sw.WriteGitInfo(git)
+		sw.WriteGit(git)
 		parentDir := filepath.Join(outputDir, git.ParentDir)
 		if !IsDir(parentDir) {
 			err = os.MkdirAll(parentDir, 0770)

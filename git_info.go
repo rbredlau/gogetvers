@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-type GitInfo struct {
+type Git struct {
 	HomeDir   string
 	ParentDir string
 	Branch    string
@@ -15,7 +15,7 @@ type GitInfo struct {
 	Status    string
 }
 
-func (g *GitInfo) StripGoSrcDir(path string) {
+func (g *Git) StripGoSrcDir(path string) {
 	if g == nil {
 		return
 	}
@@ -23,7 +23,7 @@ func (g *GitInfo) StripGoSrcDir(path string) {
 	g.ParentDir = strings.TrimLeft(strings.Replace(g.ParentDir, path, "", -1), "\\/")
 }
 
-func (g *GitInfo) ToSlash() {
+func (g *Git) ToSlash() {
 	if g == nil {
 		return
 	}
@@ -31,7 +31,7 @@ func (g *GitInfo) ToSlash() {
 	g.ParentDir = filepath.ToSlash(g.ParentDir)
 }
 
-func (g *GitInfo) FromSlash() {
+func (g *Git) FromSlash() {
 	if g == nil {
 		return
 	}

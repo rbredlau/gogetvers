@@ -1,17 +1,13 @@
 package gogetvers
 
 import (
-	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
-	"syscall"
-	"time"
 )
 
 // Starts at path and works upwards looking for .git directory.
@@ -91,21 +87,16 @@ func GetPackageInfo(packagePath string, status *StatusWriter) (*PackageInfo, err
 	}
 
 	// Get info for package at sourceDir
-	code, output, err := ExecProgram(packageDir, "go", []string{"list"})
+	golist := newCommandGoList()
+	err = golist.exec(packageDir)
 	if err != nil {
 		status.Error(err)
 		return nil, err
 	}
-	if code != 0 {
-		err = errors.New(fmt.Sprintf("go list returns-> %v", code))
-		status.Error(err)
-		return nil, err
-	}
-	output = strings.Trim(output, "\r\n")
-	status.Printf("go list yields -> %v\n", output)
+	status.Printf("%v -> %v\n", golist.String(), golist.output)
 
 	// We can now deduce go-src path.
-	goSrcDir := strings.Replace(filepath.ToSlash(packageDir), output, "", -1)
+	goSrcDir := strings.Replace(filepath.ToSlash(packageDir), golist.output, "", -1)
 	goSrcDir, err = filepath.Abs(goSrcDir)
 	if err != nil {
 		status.Error(err)
@@ -115,23 +106,18 @@ func GetPackageInfo(packagePath string, status *StatusWriter) (*PackageInfo, err
 	status.Printf("go-src path -> %v\n", goSrcDir)
 
 	// Get dependency information for package at sourceDir
-	code, output, err = ExecProgram(packageDir, "go", []string{"list", "-f", "{{.Deps}}"})
+	golistdeps := newCommandGoListDeps()
+	err = golistdeps.exec(packageDir)
 	if err != nil {
 		status.Error(err)
 		return nil, err
-	}
-	if code != 0 {
-		err = errors.New(fmt.Sprintf("go list returns-> %v", code))
-		status.Error(err)
-		return rv, err
 	}
 	rv = &PackageInfo{PackageDir: packageDir, GoSrcDir: goSrcDir,
 		Deps: []string{}, DepInfo: make(map[string]*DependencyInfo),
 		GitDirs:     make(map[string][]*DependencyInfo),
 		Gits:        make(map[string]*Git),
 		Untrackable: make(map[string]*DependencyInfo)}
-	output = strings.Trim(output, "\r\n[]")
-	lines := strings.Split(output, " ")
+	lines := strings.Split(golistdeps.output, " ")
 	status.Indent()
 	for _, v := range lines {
 		status.Printf("dependency -> %v\n", v)
@@ -164,82 +150,6 @@ func GetPackageInfo(packagePath string, status *StatusWriter) (*PackageInfo, err
 	}
 	status.Outdent()
 	return rv, nil
-}
-
-// Executes "binary" with "args" in path and returns standard output, error code
-// and any error.
-func ExecProgram(path, binary string, args []string) (int, string, error) {
-	// Exit code and standard output.
-	output := ""
-	exitCode := int(-1)
-	// Catch errors
-	var err error
-	// Done channel tells us when command is done.
-	done := make(chan error, 1)
-	// Create command.
-	cmd := exec.Command(binary, args...)
-	// Standard output handler
-	stdoutDone := make(chan bool, 1)
-	defer func() { stdoutDone <- true }()
-	stdoutRdr, err := cmd.StdoutPipe()
-	if err != nil {
-		return exitCode, output, err
-	}
-	go func() {
-		for {
-			select {
-			case <-stdoutDone:
-				return
-			default:
-				dat := make([]byte, 256)
-				nn, _ := stdoutRdr.Read(dat)
-				if nn > 0 {
-					output = output + string(bytes.TrimRight(dat, "\x00"))
-				} else {
-					time.Sleep(300 * time.Millisecond)
-				}
-			}
-		}
-	}()
-	// Start command
-	started := make(chan bool, 1)
-	go func() {
-		cw, err := os.Getwd()
-		if err != nil {
-			return
-		}
-		defer os.Chdir(cw)
-		os.Chdir(path)
-		err = cmd.Start()
-		started <- true
-		if err != nil {
-			return
-		}
-	}()
-
-	go func() {
-		select {
-		case <-started:
-		}
-		done <- cmd.Wait()
-	}()
-	select {
-	case err = <-done:
-		exitCode = 0
-		if err != nil {
-			if exiterr, ok := err.(*exec.ExitError); ok {
-				if status, ok := exiterr.Sys().(syscall.WaitStatus); ok {
-					exitCode = status.ExitStatus()
-					err = nil
-				}
-			}
-		}
-	}
-	if err != nil {
-		return exitCode, output, err
-	}
-
-	return exitCode, output, nil
 }
 
 // Opens the input file and decodes the manifest.

@@ -10,11 +10,14 @@ import (
 	"syscall"
 )
 
+type funcCommandOutputProcessor func(output string) string
+
 type command struct {
-	bin      string
-	args     []string
-	output   string
-	exitCode int
+	bin             string
+	args            []string
+	output          string
+	exitCode        int
+	outputProcessor funcCommandOutputProcessor
 }
 
 func newCommandGitBranch() *command {
@@ -43,6 +46,18 @@ func newCommandGitOrigin() *command {
 
 func newCommandGitStatus() *command {
 	return newCommand("git", "status", "--porcelain")
+}
+
+func newCommandGoList() *command {
+	return newCommand("go", "list")
+}
+
+func newCommandGoListDeps() *command {
+	rv := newCommand("go", "list", "-f", "{{.Deps}}")
+	rv.outputProcessor = func(output string) string {
+		return strings.Replace(strings.Replace(output, "[", "", 1), "]", "", 1)
+	}
+	return rv
 }
 
 func newCommand(bin string, args ...string) *command {
@@ -81,6 +96,9 @@ func (cmd *command) exec(chdir string) error {
 		case <-stdoutRet:
 		}
 		cmd.output = strings.TrimSpace(cmd.output)
+		if cmd.outputProcessor != nil {
+			cmd.output = cmd.outputProcessor(cmd.output)
+		}
 	}()
 	stdoutDone := make(chan bool, 1)
 	defer func() { stdoutDone <- true }()

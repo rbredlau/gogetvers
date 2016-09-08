@@ -57,18 +57,15 @@ func Rebuild(outputDir, inputFile string, statusWriter io.Writer) error {
 				return err
 			}
 		}
-		sw.Printf("git clone -b %v %v %v\n", git.Branch, git.OriginUrl, filepath.Base(git.HomeDir))
+		cmd := newCommandGitClone("master", git.OriginUrl, filepath.Base(git.HomeDir))
+		sw.Writeln(cmd.String())
 		sw.Indent()
-		code, _, err := ExecProgram(parentDir, "git", []string{"clone", "-b", git.Branch, git.OriginUrl, filepath.Base(git.HomeDir)})
+		err = cmd.exec(parentDir)
 		if err != nil {
 			sw.Error(err)
 			return err
 		}
-		if code != 0 {
-			err := errors.New(fmt.Sprintf("git clone returns -> %v", code))
-			sw.Error(err)
-			return err
-		}
+		// TODO Checkout appropriate hash; simply cloning is not enough.
 		sw.Writeln("done")
 		sw.Outdent()
 	}

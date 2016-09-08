@@ -134,7 +134,7 @@ func Checkout(outputDir, inputFile string, statusWriter io.Writer) error {
 		}
 		if stat.gitClone {
 			sw.Printf("git clone -b master %v %v\n", stat.wanted.OriginUrl, filepath.Base(stat.wanted.HomeDir))
-			code, _, err := ExecProgram(stat.parentDir, "git", []string{"clone", "-b", stat.wanted.Branch, stat.wanted.OriginUrl, filepath.Base(stat.wanted.HomeDir)})
+			code, _, err := ExecProgram(stat.parentDir, "git", []string{"clone", "-b", "master", stat.wanted.OriginUrl, filepath.Base(stat.wanted.HomeDir)})
 			if err != nil {
 				sw.Error(err)
 				return err

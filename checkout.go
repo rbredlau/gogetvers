@@ -147,7 +147,7 @@ func Checkout(outputDir, inputFile string, statusWriter io.Writer) error {
 		}
 		if stat.switchHash {
 			sw.Printf("git checkout %v\n", stat.wanted.Hash)
-			code, _, err := ExecProgram(stat.parentDir, "git", []string{"checkout", stat.wanted.Hash})
+			code, _, err := ExecProgram(stat.dir, "git", []string{"checkout", stat.wanted.Hash})
 			if err != nil {
 				sw.Error(err)
 				return err

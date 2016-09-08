@@ -15,7 +15,7 @@ type Git struct {
 	Status    string
 }
 
-func (g *Git) StripGoSrcDir(path string) {
+func (g *Git) StripDirPrefix(path string) {
 	if g == nil {
 		return
 	}

@@ -13,7 +13,7 @@ type DependencyInfo struct {
 	GitDir string // The .git directory.
 }
 
-func (d *DependencyInfo) StripGoSrcDir(path string) {
+func (d *DependencyInfo) StripDirPrefix(path string) {
 	if d == nil {
 		return
 	}

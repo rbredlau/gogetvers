@@ -17,20 +17,20 @@ type PackageInfo struct {
 	Untrackable map[string]*DependencyInfo
 }
 
-func (p *PackageInfo) StripGoSrcDir() {
+func (p *PackageInfo) StripDirPrefix() {
 	if p == nil {
 		return
 	}
 	p.PackageDir = strings.TrimLeft(strings.Replace(p.PackageDir, p.GoSrcDir, "", -1), "\\/")
 	p.GitDir = strings.TrimLeft(strings.Replace(p.GitDir, p.GoSrcDir, "", -1), "\\/")
 	if p.Git != nil {
-		p.Git.StripGoSrcDir(p.GoSrcDir)
+		p.Git.StripDirPrefix(p.GoSrcDir)
 	}
 	for _, v := range p.DepInfo {
-		v.StripGoSrcDir(p.GoSrcDir)
+		v.StripDirPrefix(p.GoSrcDir)
 	}
 	for _, v := range p.Gits {
-		v.StripGoSrcDir(p.GoSrcDir)
+		v.StripDirPrefix(p.GoSrcDir)
 	}
 }
 

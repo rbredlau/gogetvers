@@ -2,7 +2,6 @@ package gogetvers
 
 import (
 	"errors"
-	"fmt"
 	"io"
 	"os"
 	"path/filepath"
@@ -133,27 +132,19 @@ func Checkout(outputDir, inputFile string, statusWriter io.Writer) error {
 			}
 		}
 		if stat.gitClone {
-			sw.Printf("git clone -b master %v %v\n", stat.wanted.OriginUrl, filepath.Base(stat.wanted.HomeDir))
-			code, _, err := ExecProgram(stat.parentDir, "git", []string{"clone", "-b", "master", stat.wanted.OriginUrl, filepath.Base(stat.wanted.HomeDir)})
+			cmd := newCommandGitClone("master", stat.wanted.OriginUrl, filepath.Base(stat.wanted.HomeDir))
+			sw.Writeln(cmd.String())
+			err = cmd.exec(stat.parentDir)
 			if err != nil {
-				sw.Error(err)
-				return err
-			}
-			if code != 0 {
-				err := errors.New(fmt.Sprintf("git clone returns -> %v", code))
 				sw.Error(err)
 				return err
 			}
 		}
 		if stat.switchHash {
-			sw.Printf("git checkout %v\n", stat.wanted.Hash)
-			code, _, err := ExecProgram(stat.dir, "git", []string{"checkout", stat.wanted.Hash})
+			cmd := newCommandGitCheckout(stat.wanted.Hash)
+			sw.Writeln(cmd.String())
+			err = cmd.exec(stat.dir)
 			if err != nil {
-				sw.Error(err)
-				return err
-			}
-			if code != 0 {
-				err := errors.New(fmt.Sprintf("git checkout returns -> %v", code))
 				sw.Error(err)
 				return err
 			}

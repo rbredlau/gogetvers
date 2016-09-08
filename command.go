@@ -17,32 +17,32 @@ type command struct {
 	exitCode int
 }
 
-/* TODO RM
-tempIterator{"git", []string{"branch"}, &rv.Branch},
-tempIterator{"git", []string{"config", "--get", "remote.origin.url"}, &rv.OriginUrl},
-tempIterator{"git", []string{"rev-parse", "HEAD"}, &rv.Hash},
-tempIterator{"git", []string{"status", "--porcelain"}, &rv.Status},
-tempIterator{"git", []string{"describe", "--tags", "--abbrev=8", "--always", "--long"}, &rv.Describe}}
-*/
-
 func newCommandGitBranch() *command {
 	return newCommand("git", "branch")
 }
 
-func newCommandGitOrigin() *command {
-	return newCommand("git", "config", "--get", "remote.origin.url")
+func newCommandGitCheckout(hash string) *command {
+	return newCommand("git", "checkout", hash)
+}
+
+func newCommandGitClone(branch, origin, outputDir string) *command {
+	return newCommand("git", "clone", "-b", branch, origin, outputDir)
+}
+
+func newCommandGitDescribe() *command {
+	return newCommand("git", "describe", "--tags", "--abbrev=8", "--always", "--long")
 }
 
 func newCommandGitHash() *command {
 	return newCommand("git", "rev-parse", "HEAD")
 }
 
-func newCommandGitStatus() *command {
-	return newCommand("git", "status", "--porcelain")
+func newCommandGitOrigin() *command {
+	return newCommand("git", "config", "--get", "remote.origin.url")
 }
 
-func newCommandGitDescribe() *command {
-	return newCommand("git", "describe", "--tags", "--abbrev=8", "--always", "--long")
+func newCommandGitStatus() *command {
+	return newCommand("git", "status", "--porcelain")
 }
 
 func newCommand(bin string, args ...string) *command {
@@ -51,6 +51,13 @@ func newCommand(bin string, args ...string) *command {
 		rv.args = append(rv.args, v)
 	}
 	return rv
+}
+
+func (cmd *command) String() string {
+	if cmd == nil {
+		return ""
+	}
+	return strings.Join(append([]string{cmd.bin}, cmd.args...), " ")
 }
 
 func (cmd *command) exec(chdir string) error {
@@ -136,7 +143,7 @@ func (cmd *command) exec(chdir string) error {
 		return err
 	}
 	if cmd.exitCode != 0 {
-		return errors.New(fmt.Sprintf("%v %v returns %v", cmd.bin, strings.Join(cmd.args, " "), cmd.exitCode))
+		return errors.New(fmt.Sprintf("%v returns %v", cmd.String(), cmd.exitCode))
 	}
 
 	return nil

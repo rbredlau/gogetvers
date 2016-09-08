@@ -48,8 +48,7 @@ func GetGitInfo(path string) (*GitInfo, error) {
 		for _, v := range pieces {
 			v = strings.Trim(v, "\r\n ")
 			if v[0] == '*' {
-				pieces := strings.Split(v, " ")
-				rv.Branch = strings.Trim(pieces[1], " ")
+				rv.Branch = strings.TrimSpace(strings.Replace(strings.Replace(strings.Replace(v, "* ", "", -1), "(", "", -1), ")", "", -1))
 			}
 			break
 		}

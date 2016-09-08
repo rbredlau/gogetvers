@@ -14,62 +14,6 @@ import (
 	"time"
 )
 
-// Returns git info for path.
-/* TODO RM
-func GetGit(path string) (*Git, error) {
-	if !IsDir(path) {
-		return nil, errors.New(fmt.Sprintf("not a path @ %v", path))
-	}
-	rv := &Git{HomeDir: path, ParentDir: filepath.Dir(path)}
-	tmp := &Git{}
-	type tempIterator struct {
-		command string
-		args    []string
-		target  *string
-	}
-	commands := []tempIterator{
-		tempIterator{"git", []string{"branch"}, &tmp.Branch},
-		tempIterator{"git", []string{"config", "--get", "remote.origin.url"}, &tmp.OriginUrl},
-		tempIterator{"git", []string{"rev-parse", "HEAD"}, &tmp.Hash},
-		tempIterator{"git", []string{"status", "--porcelain"}, &tmp.Status},
-		tempIterator{"git", []string{"describe", "--tags", "--abbrev=8", "--always", "--long"}, &tmp.Describe}}
-	//
-	for _, cmd := range commands {
-		fmt.Println("git", cmd.command, cmd.args) //TODO RM
-		code, output, err := ExecProgram(path, cmd.command, cmd.args)
-		if err == nil && code == 0 {
-			output = strings.Trim(output, "\r\n")
-			*cmd.target = output
-		}
-		fmt.Println(*cmd.target) //TODO RM
-	}
-	//
-	if tmp.Branch != "" {
-		pieces := strings.Split(tmp.Branch, "\n")
-		for _, v := range pieces {
-			v = strings.Trim(v, "\r\n ")
-			if v[0] == '*' {
-				rv.Branch = strings.TrimSpace(strings.Replace(strings.Replace(strings.Replace(v, "* ", "", -1), "(", "", -1), ")", "", -1))
-			}
-			break
-		}
-	}
-	if tmp.Hash != "" {
-		rv.Hash = tmp.Hash
-	}
-	if tmp.OriginUrl != "" {
-		rv.OriginUrl = tmp.OriginUrl
-	}
-	if tmp.Describe != "" {
-		rv.Describe = tmp.Describe
-	}
-	if tmp.Status != "" {
-		rv.Status = tmp.Status
-	}
-	return rv, nil
-}
-*/
-
 // Starts at path and works upwards looking for .git directory.
 // Stops when it reaches stopDir and returns an error.
 func GetGitPath(path, stopDir string) (string, error) {
@@ -101,7 +45,7 @@ func GetDependencyInfo(pkg *PackageInfo, status *StatusWriter) error {
 	for _, v := range pkg.Deps {
 		status.Printf("Dependency -> %v\n", v)
 		status.Indent()
-		info := &DependencyInfo{IsGo: true, IsGit: false, Name: v, DepDir: filepath.FromSlash(filepath.Join(pkg.GoSrcDir, v))}
+		info := newDependencyInfo(true, false, v, filepath.FromSlash(filepath.Join(pkg.GoSrcDir, v)))
 		if IsDir(info.DepDir) {
 			info.IsGo = false
 			gitDir, err := GetGitPath(info.DepDir, pkg.GoSrcDir)

@@ -1,10 +1,5 @@
 package gogetvers
 
-import (
-	"path/filepath"
-	"strings"
-)
-
 type PackageInfo struct {
 	PackageDir  string                     // Package source directory; absolute path.
 	GitDir      string                     // Path to .git for package.
@@ -15,57 +10,74 @@ type PackageInfo struct {
 	GitDirs     map[string][]*DependencyInfo
 	Gits        map[string]*Git
 	Untrackable map[string]*DependencyInfo
+	//
+	*pathsComposite
 }
 
-func (p *PackageInfo) StripDirPrefix() {
+func newPackageInfo() *PackageInfo {
+	rv := &PackageInfo{Deps: []string{},
+		DepInfo:     make(map[string]*DependencyInfo),
+		GitDirs:     make(map[string][]*DependencyInfo),
+		Gits:        make(map[string]*Git),
+		Untrackable: make(map[string]*DependencyInfo)}
+	rv.pathsComposite = newPathsComposite(&rv.PackageDir, &rv.GitDir)
+	return rv
+}
+
+// If prefix is empty string then p.GoSrcDir is used instead.
+func (p *PackageInfo) StripPathPrefix(prefix string) {
 	if p == nil {
 		return
 	}
-	p.PackageDir = strings.TrimLeft(strings.Replace(p.PackageDir, p.GoSrcDir, "", -1), "\\/")
-	p.GitDir = strings.TrimLeft(strings.Replace(p.GitDir, p.GoSrcDir, "", -1), "\\/")
+	if prefix == "" {
+		prefix = p.GoSrcDir
+	}
+	p.pathsComposite.StripPathPrefix(prefix)
 	if p.Git != nil {
-		p.Git.StripDirPrefix(p.GoSrcDir)
+		p.Git.StripPathPrefix(prefix)
 	}
 	for _, v := range p.DepInfo {
-		v.StripDirPrefix(p.GoSrcDir)
+		v.StripPathPrefix(prefix)
 	}
 	for _, v := range p.Gits {
-		v.StripDirPrefix(p.GoSrcDir)
+		v.StripPathPrefix(prefix)
 	}
 }
 
-func (p *PackageInfo) ToSlash() {
+func (p *PackageInfo) PathsToSlash() {
 	if p == nil {
 		return
 	}
-	p.PackageDir = filepath.ToSlash(p.PackageDir)
-	p.GitDir = filepath.ToSlash(p.GitDir)
-	p.GoSrcDir = filepath.ToSlash(p.GoSrcDir)
+	p.pathsComposite.PathsToSlash()
+	// Do the GoSrcDir too
+	pc := newPathsComposite(&p.GoSrcDir)
+	pc.PathsToSlash()
 	if p.Git != nil {
-		p.Git.ToSlash()
+		p.Git.PathsToSlash()
 	}
 	for _, v := range p.DepInfo {
-		v.ToSlash()
+		v.PathsToSlash()
 	}
 	for _, v := range p.Gits {
-		v.ToSlash()
+		v.PathsToSlash()
 	}
 }
 
-func (p *PackageInfo) FromSlash() {
+func (p *PackageInfo) PathsFromSlash() {
 	if p == nil {
 		return
 	}
-	p.PackageDir = filepath.FromSlash(p.PackageDir)
-	p.GitDir = filepath.FromSlash(p.GitDir)
-	p.GoSrcDir = filepath.FromSlash(p.GoSrcDir)
+	p.pathsComposite.PathsFromSlash()
+	// Do the GoSrcDir too
+	pc := newPathsComposite(&p.GoSrcDir)
+	pc.PathsFromSlash()
 	if p.Git != nil {
-		p.Git.FromSlash()
+		p.Git.PathsFromSlash()
 	}
 	for _, v := range p.DepInfo {
-		v.FromSlash()
+		v.PathsFromSlash()
 	}
 	for _, v := range p.Gits {
-		v.FromSlash()
+		v.PathsFromSlash()
 	}
 }

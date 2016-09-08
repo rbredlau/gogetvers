@@ -15,6 +15,8 @@ type Git struct {
 	OriginUrl string
 	Describe  string
 	Status    string
+	//
+	*pathsComposite
 }
 
 // Returns a new Git structure for the given path.
@@ -27,6 +29,7 @@ func NewGit(path string) (rv *Git, rverr error) {
 	}
 	//
 	rv = &Git{HomeDir: path, ParentDir: filepath.Dir(path)}
+	rv.pathsComposite = newPathsComposite(&rv.HomeDir, &rv.ParentDir)
 	type tempIterator struct {
 		command string
 		args    []string
@@ -65,28 +68,4 @@ func NewGit(path string) (rv *Git, rverr error) {
 		}
 	}
 	return rv, nil
-}
-
-func (g *Git) StripDirPrefix(path string) {
-	if g == nil {
-		return
-	}
-	g.HomeDir = strings.TrimLeft(strings.Replace(g.HomeDir, path, "", -1), "\\/")
-	g.ParentDir = strings.TrimLeft(strings.Replace(g.ParentDir, path, "", -1), "\\/")
-}
-
-func (g *Git) ToSlash() {
-	if g == nil {
-		return
-	}
-	g.HomeDir = filepath.ToSlash(g.HomeDir)
-	g.ParentDir = filepath.ToSlash(g.ParentDir)
-}
-
-func (g *Git) FromSlash() {
-	if g == nil {
-		return
-	}
-	g.HomeDir = filepath.FromSlash(g.HomeDir)
-	g.ParentDir = filepath.FromSlash(g.ParentDir)
 }

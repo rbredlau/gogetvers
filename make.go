@@ -26,8 +26,8 @@ func Make(sourceDir, outputFile string, statusWriter io.Writer) error {
 	if err != nil {
 		return err
 	}
-	pkg.ToSlash()
-	pkg.StripDirPrefix()
+	pkg.PathsToSlash()
+	pkg.StripPathPrefix("")
 	sw.Writeln("")
 	sw.Writeln("Manifest summary:")
 	sw.Indent()

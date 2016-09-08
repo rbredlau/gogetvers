@@ -31,25 +31,20 @@ func NewGit(path string) (rv *Git, rverr error) {
 	rv = &Git{HomeDir: path, ParentDir: filepath.Dir(path)}
 	rv.pathsComposite = newPathsComposite(&rv.HomeDir, &rv.ParentDir)
 	type tempIterator struct {
-		command string
-		args    []string
+		command *command
 		target  *string
 	}
 	commands := []tempIterator{
-		tempIterator{"git", []string{"branch"}, &rv.Branch},
-		tempIterator{"git", []string{"config", "--get", "remote.origin.url"}, &rv.OriginUrl},
-		tempIterator{"git", []string{"rev-parse", "HEAD"}, &rv.Hash},
-		tempIterator{"git", []string{"status", "--porcelain"}, &rv.Status},
-		tempIterator{"git", []string{"describe", "--tags", "--abbrev=8", "--always", "--long"}, &rv.Describe}}
+		tempIterator{newCommandGitBranch(), &rv.Branch},
+		tempIterator{newCommandGitOrigin(), &rv.OriginUrl},
+		tempIterator{newCommandGitHash(), &rv.Hash},
+		tempIterator{newCommandGitStatus(), &rv.Status},
+		tempIterator{newCommandGitDescribe(), &rv.Describe}}
 	//
 	for _, cmd := range commands {
-		code, output, err := ExecProgram(path, cmd.command, cmd.args)
-		if err != nil {
-			rverr = err
-		}
-		if err == nil && code == 0 {
-			output = strings.TrimSpace(output)
-			*cmd.target = output
+		err := cmd.command.exec(path)
+		if err == nil {
+			*cmd.target = cmd.command.output
 		}
 	}
 	if rverr != nil {

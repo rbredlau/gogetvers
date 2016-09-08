@@ -8,7 +8,6 @@ import (
 	"os/exec"
 	"strings"
 	"syscall"
-	"time"
 )
 
 type command struct {
@@ -68,6 +67,14 @@ func (cmd *command) exec(chdir string) error {
 	// Create command.
 	runme := exec.Command(cmd.bin, cmd.args...)
 	// Standard output handler
+	stdoutRet := make(chan bool, 1)
+	defer func() {
+		// Trim output but not until after the stdout goroutine is done.
+		select {
+		case <-stdoutRet:
+		}
+		cmd.output = strings.TrimSpace(cmd.output)
+	}()
 	stdoutDone := make(chan bool, 1)
 	defer func() { stdoutDone <- true }()
 	stdoutRdr, err := runme.StdoutPipe()
@@ -78,14 +85,13 @@ func (cmd *command) exec(chdir string) error {
 		for {
 			select {
 			case <-stdoutDone:
+				stdoutRet <- true
 				return
 			default:
 				dat := make([]byte, 256)
 				nn, _ := stdoutRdr.Read(dat)
 				if nn > 0 {
 					cmd.output = cmd.output + string(bytes.TrimRight(dat, "\x00"))
-				} else {
-					time.Sleep(300 * time.Millisecond)
 				}
 			}
 		}

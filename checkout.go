@@ -48,7 +48,7 @@ func Checkout(outputDir, inputFile string, statusWriter io.Writer) error {
 		}
 		if IsDir(abs) {
 			v.dirExists = true
-			v.current, err = GetGit(abs)
+			v.current, err = NewGit(abs)
 			if err == nil && v.current != nil {
 				if v.current.Status != "" {
 					gitsWithMods = append(gitsWithMods, abs)

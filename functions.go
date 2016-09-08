@@ -15,6 +15,7 @@ import (
 )
 
 // Returns git info for path.
+/* TODO RM
 func GetGit(path string) (*Git, error) {
 	if !IsDir(path) {
 		return nil, errors.New(fmt.Sprintf("not a path @ %v", path))
@@ -67,6 +68,7 @@ func GetGit(path string) (*Git, error) {
 	}
 	return rv, nil
 }
+*/
 
 // Starts at path and works upwards looking for .git directory.
 // Stops when it reaches stopDir and returns an error.
@@ -113,7 +115,7 @@ func GetDependencyInfo(pkg *PackageInfo, status *StatusWriter) error {
 					status.Writeln("previously discovered")
 				} else {
 					pkg.GitDirs[gitDir] = []*DependencyInfo{info}
-					pkg.Gits[gitDir], _ = GetGit(filepath.Dir(gitDir))
+					pkg.Gits[gitDir], _ = NewGit(filepath.Dir(gitDir))
 					status.WriteGit(pkg.Gits[gitDir])
 				}
 				status.Outdent()
@@ -200,7 +202,7 @@ func GetPackageInfo(packagePath string, status *StatusWriter) (*PackageInfo, err
 		status.Error(err)
 		return nil, err
 	}
-	rv.Git, err = GetGit(filepath.Dir(rv.GitDir))
+	rv.Git, err = NewGit(filepath.Dir(rv.GitDir))
 	if err != nil {
 		status.Error(err)
 		return nil, err

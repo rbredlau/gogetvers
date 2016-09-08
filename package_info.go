@@ -44,6 +44,25 @@ func (p *PackageInfo) StripPathPrefix(prefix string) {
 	}
 }
 
+func (p *PackageInfo) SetPathPrefix(prefix string) {
+	if p == nil {
+		return
+	}
+	p.pathsComposite.SetPathPrefix(prefix)
+	// Do the GoSrcDir too
+	pc := newPathsComposite(&p.GoSrcDir)
+	pc.SetPathPrefix(prefix)
+	if p.Git != nil {
+		p.Git.SetPathPrefix(prefix)
+	}
+	for _, v := range p.DepInfo {
+		v.SetPathPrefix(prefix)
+	}
+	for _, v := range p.Gits {
+		v.SetPathPrefix(prefix)
+	}
+}
+
 func (p *PackageInfo) PathsToSlash() {
 	if p == nil {
 		return

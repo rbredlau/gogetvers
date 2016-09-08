@@ -41,10 +41,10 @@ func GetDependencyInfo(pkg *PackageInfo, status *StatusWriter) error {
 	for _, v := range pkg.Deps {
 		status.Printf("Dependency -> %v\n", v)
 		status.Indent()
-		info := newDependencyInfo(true, false, v, filepath.FromSlash(filepath.Join(pkg.GoSrcDir, v)))
+		info := newDependencyInfo(true, false, v, filepath.FromSlash(filepath.Join(pkg.RootDir, v)))
 		if IsDir(info.DepDir) {
 			info.IsGo = false
-			gitDir, err := GetGitPath(info.DepDir, pkg.GoSrcDir)
+			gitDir, err := GetGitPath(info.DepDir, pkg.RootDir)
 			if err == nil && gitDir != "" {
 				status.Writeln("git repository")
 				info.IsGit = true
@@ -112,7 +112,7 @@ func GetPackageInfo(packagePath string, status *StatusWriter) (*PackageInfo, err
 		status.Error(err)
 		return nil, err
 	}
-	rv = &PackageInfo{PackageDir: packageDir, GoSrcDir: goSrcDir,
+	rv = &PackageInfo{PackageDir: packageDir, RootDir: goSrcDir,
 		Deps: []string{}, DepInfo: make(map[string]*DependencyInfo),
 		GitDirs:     make(map[string][]*DependencyInfo),
 		Gits:        make(map[string]*Git),

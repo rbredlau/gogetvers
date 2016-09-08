@@ -5,7 +5,7 @@ type PackageInfo struct {
 	GitDir      string                     // Path to .git for package.
 	Git         *Git                       // Git info for package.
 	Deps        []string                   // List of package dependencies.
-	GoSrcDir    string                     // Absolute path of Go src that contains SourceDir.
+	RootDir     string                     // The root directory that contains everything.
 	DepInfo     map[string]*DependencyInfo // Map of dependency info.
 	GitDirs     map[string][]*DependencyInfo
 	Gits        map[string]*Git
@@ -24,13 +24,13 @@ func newPackageInfo() *PackageInfo {
 	return rv
 }
 
-// If prefix is empty string then p.GoSrcDir is used instead.
+// If prefix is empty string then p.RootDir is used instead.
 func (p *PackageInfo) StripPathPrefix(prefix string) {
 	if p == nil {
 		return
 	}
 	if prefix == "" {
-		prefix = p.GoSrcDir
+		prefix = p.RootDir
 	}
 	p.pathsComposite.StripPathPrefix(prefix)
 	if p.Git != nil {
@@ -49,8 +49,8 @@ func (p *PackageInfo) SetPathPrefix(prefix string) {
 		return
 	}
 	p.pathsComposite.SetPathPrefix(prefix)
-	// Do the GoSrcDir too
-	pc := newPathsComposite(&p.GoSrcDir)
+	// Do the RootDir too
+	pc := newPathsComposite(&p.RootDir)
 	pc.SetPathPrefix(prefix)
 	if p.Git != nil {
 		p.Git.SetPathPrefix(prefix)
@@ -68,8 +68,8 @@ func (p *PackageInfo) PathsToSlash() {
 		return
 	}
 	p.pathsComposite.PathsToSlash()
-	// Do the GoSrcDir too
-	pc := newPathsComposite(&p.GoSrcDir)
+	// Do the RootDir too
+	pc := newPathsComposite(&p.RootDir)
 	pc.PathsToSlash()
 	if p.Git != nil {
 		p.Git.PathsToSlash()
@@ -87,8 +87,8 @@ func (p *PackageInfo) PathsFromSlash() {
 		return
 	}
 	p.pathsComposite.PathsFromSlash()
-	// Do the GoSrcDir too
-	pc := newPathsComposite(&p.GoSrcDir)
+	// Do the RootDir too
+	pc := newPathsComposite(&p.RootDir)
 	pc.PathsFromSlash()
 	if p.Git != nil {
 		p.Git.PathsFromSlash()

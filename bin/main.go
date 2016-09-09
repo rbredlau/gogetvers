@@ -1,6 +1,7 @@
 package main
 
 import (
+	fs "broadlux/fileSystem"
 	"fmt"
 	gv "gogetvers"
 	"io"
@@ -73,13 +74,13 @@ func main() {
 		if sub == "checkout" && !parsedPath {
 			// TODO USE GOPATH
 		}
-		if !gv.IsDir(path) {
+		if !fs.IsDir(path) {
 			fmt.Println(fmt.Sprintf("Error: PATH is not a directory: %v", path))
 			exitCode = 1
 			return
 		}
 		if sub != "make" && sub != "print" {
-			if file != "" && !gv.IsFile(file) {
+			if file != "" && !fs.IsFile(file) {
 				fmt.Println(fmt.Sprintf("Error: FILE is not a file: %v", file))
 				exitCode = 1
 				return

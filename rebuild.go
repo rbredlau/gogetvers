@@ -1,6 +1,7 @@
 package gogetvers
 
 import (
+	fs "broadlux/fileSystem"
 	"errors"
 	"fmt"
 	"io"
@@ -36,7 +37,7 @@ func Rebuild(outputDir, inputFile string, statusWriter io.Writer) error {
 		if err != nil {
 			return err
 		}
-		if IsDir(abs) {
+		if fs.IsDir(abs) {
 			err := errors.New(fmt.Sprintf("directory already exists @ %v", abs))
 			sw.Error(err)
 			return err
@@ -49,8 +50,8 @@ func Rebuild(outputDir, inputFile string, statusWriter io.Writer) error {
 	sw.Indent()
 	for _, git := range gits {
 		sw.WriteGit(git)
-		parentDir := filepath.Join(outputDir, git.ParentDir)
-		if !IsDir(parentDir) {
+		parentDir := filepath.Join(outputDir, filepath.Dir(git.HomeDir))
+		if !fs.IsDir(parentDir) {
 			err = os.MkdirAll(parentDir, 0770)
 			if err != nil {
 				sw.Error(err)

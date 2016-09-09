@@ -23,6 +23,7 @@ func (pc *pathsComposite) StripPathPrefix(prefix string) {
 	}
 	for _, v := range pc.paths {
 		*v = strings.Replace(*v, prefix, "", 1)
+		*v = strings.TrimLeft(*v, "\\/")
 	}
 }
 

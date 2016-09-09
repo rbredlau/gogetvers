@@ -1,6 +1,7 @@
 package gogetvers
 
 import (
+	fs "broadlux/fileSystem"
 	"errors"
 	"io"
 	"os"
@@ -45,7 +46,7 @@ func Checkout(outputDir, inputFile string, statusWriter io.Writer) error {
 		if err != nil {
 			return err
 		}
-		if IsDir(abs) {
+		if fs.IsDir(abs) {
 			v.dirExists = true
 			v.current, err = NewGit(abs)
 			if err == nil && v.current != nil {
@@ -124,7 +125,7 @@ func Checkout(outputDir, inputFile string, statusWriter io.Writer) error {
 			sw.Outdent()
 			continue
 		}
-		if !IsDir(stat.parentDir) {
+		if !fs.IsDir(stat.parentDir) {
 			err = os.MkdirAll(stat.parentDir, 0770)
 			if err != nil {
 				sw.Error(err)

@@ -22,48 +22,14 @@ func Make(sourceDir, outputFile string, statusWriter io.Writer) error {
 	if statusWriter != nil {
 		sw = &StatusWriter{Writer: statusWriter}
 	}
-	pkg, err := GetPackageInfo(sourceDir, sw)
+	pi, err := getPackageInfo(sourceDir, sw)
 	if err != nil {
+		sw.Error(err)
 		return err
 	}
-	pkg.PathsToSlash()
-	pkg.StripPathPrefix("")
-	sw.Writeln("")
-	sw.Writeln("Manifest summary:")
-	sw.Indent()
-	ser := &PackageSummary{}
 	//
-	ser.TargetPackage = pkg.PackageDir
-	ser.TargetGit = pkg.Git
-	sw.Printf("Target package: %v\n", ser.TargetPackage)
-	sw.Write("Target ")
-	sw.WriteGit(ser.TargetGit)
-	//
-	ser.Gits = []*Git{}
-	ser.DotDeps = []string{}
-	sw.Writeln("Dependency gits:")
-	sw.Indent()
-	for _, git := range pkg.Gits {
-		ser.Gits = append(ser.Gits, git)
-		sw.WriteGit(git)
-	}
-	sw.Outdent()
-	sw.Outdent()
-	sw.Writeln("")
-	// Warn for untracked stuff.
-	if len(pkg.Untrackable) > 0 {
-		sw.Warning("The following dependencies are NOT tracked:")
-		sw.Indent()
-		for _, v := range pkg.Untrackable {
-			sw.Writeln(v.Name)
-		}
-		sw.Outdent()
-		sw.Writeln("")
-	}
-	//
-	for _, name := range pkg.Deps {
-		ser.DotDeps = append(ser.DotDeps, name)
-	}
+	pi.StripPathPrefix(pi.RootDir)
+	sw.Writeln(pi.getSummary())
 	//
 	sw.Printf("Writing output to %v\n", outputFile)
 	sw.Indent()
@@ -75,7 +41,7 @@ func Make(sourceDir, outputFile string, statusWriter io.Writer) error {
 	defer fw.Close()
 	//
 	enc := json.NewEncoder(fw)
-	err = enc.Encode(ser)
+	err = enc.Encode(pi)
 	if err != nil {
 		sw.Error(err)
 		return err

@@ -1,22 +1,25 @@
 package gogetvers
 
 import (
+	"io"
+	/* TODO
 	fs "broadlux/fileSystem"
 	"errors"
 	"fmt"
-	"io"
 	"os"
 	"path/filepath"
-)
+	*/)
 
 // Rebuilds the information contained within input file in outputDir.
 func Rebuild(outputDir, inputFile string, statusWriter io.Writer) error {
+	return nil
+	/* TODO RM
 	var sw *StatusWriter
 	if statusWriter != nil {
 		sw = &StatusWriter{Writer: statusWriter}
 	}
 	//
-	ser, err := LoadManifest(inputFile)
+	ser, err := loadPackageInfoFile(inputFile)
 	if err != nil {
 		return err
 	}
@@ -73,4 +76,5 @@ func Rebuild(outputDir, inputFile string, statusWriter io.Writer) error {
 	sw.Writeln("done")
 	sw.Outdent()
 	return nil
+	*/
 }

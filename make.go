@@ -1,23 +1,18 @@
 package gogetvers
 
 import (
-	"encoding/json"
+	_ "encoding/json" // TODO RM
 	"io"
-	"os"
-	"strings"
+	_ "os"      // TODO RM
+	_ "strings" // TODO RM
 )
-
-type PackageSummary struct {
-	TargetPackage string
-	TargetGit     *Git
-	Gits          []*Git
-	DotDeps       []string
-}
 
 // Inspects the go package located at sourceDir and creates
 // a manifest file at outputFile location.  If statusWriter
 // is non-nil then output will be written there.
 func Make(sourceDir, outputFile string, statusWriter io.Writer) error {
+	return nil
+	/* TODO RM
 	var sw *StatusWriter
 	if statusWriter != nil {
 		sw = &StatusWriter{Writer: statusWriter}
@@ -51,15 +46,17 @@ func Make(sourceDir, outputFile string, statusWriter io.Writer) error {
 	sw.Writeln("")
 	//
 	return nil
+	*/
 }
 
+/* TODO
 // Reads a manifest file and prints summary information.
 func Print(sourceDir, inputFile string, statusWriter io.Writer) error {
 	var sw *StatusWriter
 	if statusWriter != nil {
 		sw = &StatusWriter{Writer: statusWriter}
 	}
-	ser, err := LoadManifest(inputFile)
+	ser, err := loadPackageInfoFile(inputFile)
 	if err != nil {
 		return err
 	}
@@ -84,3 +81,4 @@ func Print(sourceDir, inputFile string, statusWriter io.Writer) error {
 	//
 	return nil
 }
+*/

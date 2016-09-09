@@ -35,7 +35,7 @@ func newPackageInfo(packageDir, rootDir string) *PackageInfo {
 }
 
 // Opens the input file and decodes the manifest.
-func loadPackageInfoFile(inputFile string) (*PackageSummary, error) {
+func loadPackageInfoFile(inputFile string) (*PackageInfo, error) {
 	if !fs.IsFile(inputFile) {
 		return nil, errors.New(fmt.Sprintf("Not a file @ %v", inputFile))
 	}
@@ -46,7 +46,7 @@ func loadPackageInfoFile(inputFile string) (*PackageSummary, error) {
 	defer fr.Close()
 	//
 	dec := json.NewDecoder(fr)
-	summary := &PackageSummary{}
+	summary := &PackageInfo{}
 	err = dec.Decode(summary)
 	if err != nil {
 		return nil, err

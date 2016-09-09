@@ -4,20 +4,21 @@ import (
 	fs "broadlux/fileSystem"
 	"fmt"
 	gv "gogetvers"
-	"io"
 	"os"
 	"path/filepath"
 )
 
 var (
-	cwd     string
-	path    string
-	file    string
-	command string
-	writer  io.Writer
+	//cwd string // TODO RM
+	//path    string // TODO RM
+	//	file    string // TODO RM
+	//command string // TODO RM
+	//writer  io.Writer // TODO RM
+	goget *gv.GoGetVers
 )
 
 func main() {
+	var cwd, path, file string
 	exitCode := 0
 	defer func() {
 		os.Exit(exitCode)
@@ -88,7 +89,12 @@ func main() {
 		} else if (sub == "make" || sub == "print") && file == "" {
 			file = filepath.Join(path, "gogetvers.manifest")
 		}
-		writer = os.Stdout
+		//writer = os.Stdout // TODO RM
+		goget, err = gv.NewGoGetVers(path, file, os.Stdout)
+		if err != nil {
+			exitCode = 1
+			return
+		}
 		switch sub {
 		case "checkout":
 			err = docheckout()
@@ -112,23 +118,28 @@ func main() {
 }
 
 func domake() error {
-	return gv.Make(path, file, writer)
+	return goget.Make()
 }
 
 func doprint() error {
-	return gv.Print(path, file, writer)
+	return goget.Print()
+	//return gv.Print(path, file, writer) // TODO
+	//	return nil // TODO
 }
 
 func docheckout() error {
-	return gv.Checkout(path, file, writer)
+	//	return gv.Checkout(path, file, writer) // TODO
+	return nil // TODO
 }
 
 func dorebuild() error {
-	return gv.Rebuild(path, file, writer)
+	//	return gv.Rebuild(path, file, writer) // TODO
+	return nil // TODO
 }
 
 func doconst() error {
-	return gv.Const(path, file)
+	// return gv.Const(path, file) // TODO
+	return nil // TODO
 }
 
 func doversion() {

@@ -1,6 +1,11 @@
 package gogetvers
 
 import (
+	fs "broadlux/fileSystem"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"os"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -27,6 +32,26 @@ func newPackageInfo(packageDir, rootDir string) *PackageInfo {
 		DepsUntracked: []*untrackedDependency{}}
 	rv.pathsComposite = newPathsComposite(&rv.PackageDir, &rv.RootDir)
 	return rv
+}
+
+// Opens the input file and decodes the manifest.
+func loadPackageInfoFile(inputFile string) (*PackageSummary, error) {
+	if !fs.IsFile(inputFile) {
+		return nil, errors.New(fmt.Sprintf("Not a file @ %v", inputFile))
+	}
+	fr, err := os.Open(inputFile)
+	if err != nil {
+		return nil, err
+	}
+	defer fr.Close()
+	//
+	dec := json.NewDecoder(fr)
+	summary := &PackageSummary{}
+	err = dec.Decode(summary)
+	if err != nil {
+		return nil, err
+	}
+	return summary, nil
 }
 
 // Create a new package info type by analyzing a directory continaining the

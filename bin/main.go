@@ -106,7 +106,7 @@ func main() {
 		case "checkout":
 			err = docheckout()
 		case "const":
-			err = doconst(dashg)
+			err = doconst(dashg, dashn)
 		case "make":
 			err = domake()
 		case "print":

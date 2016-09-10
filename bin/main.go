@@ -58,7 +58,7 @@ func main() {
 			for _, opt := range opts {
 				if len(args) > 0 && args[0] == opt.flag {
 					if len(args) >= 2 {
-						opt.target = &args[1]
+						*opt.target = args[1]
 						args = args[1:]
 					} else {
 						fmt.Printf("Error: Missing value for %v\n", opt.flag)

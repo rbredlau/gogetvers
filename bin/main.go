@@ -36,9 +36,12 @@ func main() {
 		return
 	}
 	switch args[0] {
-	case "-v", "--version":
+	case "-v":
 		args = args[1:]
-		doversion()
+		doversion(false)
+	case "--version":
+		args = args[1:]
+		doversion(true)
 	case "-h", "--help":
 		args = args[1:]
 		dousage()
@@ -149,12 +152,12 @@ func doconst(gofile, packageName string) error {
 	return goget.Const(gofile, packageName)
 }
 
-func doversion() {
-	v := "gogetvers version " + VersionInfo.Version + "\n"
-	for _, dep := range VersionInfo.Dependencies {
-		v = v + "    " + dep.Name + ", " + dep.Version + "\n"
+func doversion(long bool) {
+	if long {
+		fmt.Println(VersionInfo.GetVersionVerbose("gogetvers"))
+	} else {
+		fmt.Println(VersionInfo.GetVersion("gogetvers"))
 	}
-	fmt.Println(v)
 }
 
 func dousage() {

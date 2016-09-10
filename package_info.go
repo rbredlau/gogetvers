@@ -30,8 +30,18 @@ func newPackageInfo(packageDir, rootDir string) *PackageInfo {
 		DepsBuiltin:   []*builtinDependency{},
 		DepsGit:       []*gitDependency{},
 		DepsUntracked: []*untrackedDependency{}}
-	rv.pathsComposite = newPathsComposite(&rv.PackageDir, &rv.RootDir)
+	rv.setPathsComposite()
 	return rv
+}
+
+func (p *PackageInfo) setPathsComposite() {
+	if p != nil {
+		p.pathsComposite = newPathsComposite(&p.PackageDir, &p.RootDir)
+		for _, dep := range p.DepsGit {
+			dep.Git.setPathsComposite()
+		}
+		p.Git.setPathsComposite()
+	}
 }
 
 // Opens the input file and decodes the manifest.
@@ -51,6 +61,9 @@ func loadPackageInfoFile(inputFile string) (*PackageInfo, error) {
 	if err != nil {
 		return nil, err
 	}
+	// We have to reset paths composites as they aren't set in the JSON file.
+	summary.setPathsComposite()
+	//
 	return summary, nil
 }
 
@@ -157,11 +170,11 @@ func (p *PackageInfo) getSummary() string {
 
 // Condenses the gits in the package to a unique, sorted git list.
 func (p *PackageInfo) getGits() GitList {
-	if p == nil {
-		return nil
-	}
 	gits := []*Git{}
 	found := make(map[string]bool)
+	if p == nil {
+		return newGitList(gits...)
+	}
 	// Dependency gits
 	for _, dep := range p.DepsGit {
 		if _, ok := found[dep.Git.HomeDir]; !ok {
@@ -178,6 +191,57 @@ func (p *PackageInfo) getGits() GitList {
 	rv := newGitList(gits...)
 	rv.Sort()
 	return rv
+}
+
+// Returns a list of gits on disk and gits missing from disk.
+func (p *PackageInfo) getGitsDiskStatus() (exist GitList, dne GitList) {
+	yeslist, nolist := []*Git{}, []*Git{}
+	if p == nil {
+		return newGitList(yeslist...), newGitList(nolist...)
+	}
+	//
+	for _, v := range p.getGits() {
+		if fs.IsDir(v.HomeDir) {
+			yeslist = append(yeslist, v)
+		} else {
+			nolist = append(nolist, v)
+		}
+	}
+	// Return value sorted
+	exist = newGitList(yeslist...)
+	exist.Sort()
+	dne = newGitList(nolist...)
+	dne.Sort()
+	return
+}
+
+// Returns three git lists: gits with local mods, gits without local mods, and gits
+// not existing on disk.
+func (p *PackageInfo) getGitsLocalModsStatus() (mods GitList, nomods GitList, dne GitList, rverr error) {
+	yeslist, nolist, dnelist := []*Git{}, []*Git{}, []*Git{}
+	if p == nil {
+		return newGitList(yeslist...), newGitList(nolist...), newGitList(dnelist...), errors.New("nil receiver")
+	}
+	//
+	exist, dne := p.getGitsDiskStatus()
+	for _, git := range exist {
+		newgit, err := NewGit(git.HomeDir)
+		if err != nil {
+			return nil, nil, nil, err
+		}
+		if newgit.Status == "" {
+			nolist = append(nolist, git)
+		} else {
+			yeslist = append(yeslist, git)
+		}
+	}
+	// Return value sorted
+	mods = newGitList(yeslist...)
+	mods.Sort()
+	nomods = newGitList(nolist...)
+	nomods.Sort()
+	dne.Sort()
+	return
 }
 
 // Return a slice of git names.

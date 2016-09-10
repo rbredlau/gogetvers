@@ -31,6 +31,14 @@ func (gl GitList) Less(i, j int) bool {
 	return b < y
 }
 
+func (gl GitList) Names() []string {
+	rv := []string{}
+	for _, v := range gl {
+		rv = append(rv, v.HomeDir)
+	}
+	return rv
+}
+
 func (gl GitList) Sort() {
 	sort.Sort(gl)
 }

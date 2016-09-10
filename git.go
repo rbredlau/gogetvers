@@ -63,7 +63,7 @@ func NewGit(path string) (rv *Git, rverr error) {
 	}
 	//
 	rv = &Git{HomeDir: path}
-	rv.pathsComposite = newPathsComposite(&rv.HomeDir)
+	rv.setPathsComposite()
 	type tempIterator struct {
 		command *command
 		target  *string
@@ -97,6 +97,58 @@ func NewGit(path string) (rv *Git, rverr error) {
 		}
 	}
 	return rv, nil
+}
+
+// Sets the pathsComposite member.
+func (g *Git) setPathsComposite() {
+	if g != nil {
+		g.pathsComposite = newPathsComposite(&g.HomeDir)
+	}
+}
+
+// Clones the git.
+func (g *Git) Clone(mkdirs bool) error {
+	if g == nil {
+		return errors.New("nil receiver")
+	}
+	var err error
+	parentDir := fs.Dir(g.HomeDir)
+	if !fs.IsDir(parentDir) && mkdirs {
+		err = fs.Mkdir(parentDir, 0770)
+		if err != nil {
+			return err
+		}
+	}
+	if !fs.IsDir(parentDir) {
+		err = errors.New(fmt.Sprintf("Not a dir @ %v", parentDir))
+		return err
+	}
+	cmd := newCommandGitClone("master", g.OriginUrl, fs.Basename(g.HomeDir))
+	fmt.Printf("cmd-> %#v\n", cmd.String()) //TODO RM
+	//err = cmd.exec(parentDir)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// Checksout the git to the proper hash.
+func (g *Git) Checkout() error {
+	if g == nil {
+		return errors.New("nil receiver")
+	}
+	var err error
+	if !fs.IsDir(g.HomeDir) {
+		err = errors.New(fmt.Sprintf("Not a dir @ %v", g.HomeDir))
+		return err
+	}
+	cmd := newCommandGitCheckout(g.Hash)
+	fmt.Printf("cmd-> %#v\n", cmd.String()) //TODO RM
+	//err = cmd.exec(g.HomeDir)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 // Returns git as a string.

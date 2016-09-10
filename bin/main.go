@@ -123,18 +123,14 @@ func domake() error {
 
 func doprint() error {
 	return goget.Print()
-	//return gv.Print(path, file, writer) // TODO
-	//	return nil // TODO
 }
 
 func docheckout() error {
-	//	return gv.Checkout(path, file, writer) // TODO
-	return nil // TODO
+	return goget.Checkout()
 }
 
 func dorebuild() error {
-	//	return gv.Rebuild(path, file, writer) // TODO
-	return nil // TODO
+	return goget.Rebuild()
 }
 
 func doconst() error {

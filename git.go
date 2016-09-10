@@ -124,8 +124,7 @@ func (g *Git) Clone(mkdirs bool) error {
 		return err
 	}
 	cmd := newCommandGitClone("master", g.OriginUrl, fs.Basename(g.HomeDir))
-	fmt.Printf("cmd-> %#v\n", cmd.String()) //TODO RM
-	//err = cmd.exec(parentDir)
+	err = cmd.exec(parentDir)
 	if err != nil {
 		return err
 	}
@@ -143,8 +142,7 @@ func (g *Git) Checkout() error {
 		return err
 	}
 	cmd := newCommandGitCheckout(g.Hash)
-	fmt.Printf("cmd-> %#v\n", cmd.String()) //TODO RM
-	//err = cmd.exec(g.HomeDir)
+	err = cmd.exec(g.HomeDir)
 	if err != nil {
 		return err
 	}

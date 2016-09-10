@@ -54,8 +54,8 @@ func (g *GoGetVers) Const(outputFile, packageName string) error {
 	template = strings.Replace(template, "$TYPE_NAME", "VersionInfoType", -1)
 	template = strings.Replace(template, "$VERSION", fmt.Sprintf("\"%v\"", g.packageInfo.Git.Describe), -1)
 	deps := []string{}
-	for _, dep := range g.packageInfo.DepsGit {
-		deps = append(deps, fmt.Sprintf("{\"%v\",\"%v\"}", dep.Git.HomeDir, dep.Git.Describe))
+	for _, git := range g.packageInfo.getGits() {
+		deps = append(deps, fmt.Sprintf("{\"%v\",\"%v\"}", git.HomeDir, git.Describe))
 	}
 	depsString := fmt.Sprintf("{%v}", strings.Join(deps, ",\n"))
 	template = strings.Replace(template, "$DEPENDENCIES", depsString, -1)

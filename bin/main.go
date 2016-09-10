@@ -9,11 +9,6 @@ import (
 )
 
 var (
-	//cwd string // TODO RM
-	//path    string // TODO RM
-	//	file    string // TODO RM
-	//command string // TODO RM
-	//writer  io.Writer // TODO RM
 	goget *gv.GoGetVers
 )
 
@@ -89,7 +84,6 @@ func main() {
 		} else if (sub == "make" || sub == "print") && file == "" {
 			file = filepath.Join(path, "gogetvers.manifest")
 		}
-		//writer = os.Stdout // TODO RM
 		goget, err = gv.NewGoGetVers(path, file, os.Stdout)
 		if err != nil {
 			exitCode = 1
@@ -134,8 +128,7 @@ func dorebuild() error {
 }
 
 func doconst() error {
-	// return gv.Const(path, file) // TODO
-	return nil // TODO
+	return goget.Const()
 }
 
 func doversion() {
@@ -172,7 +165,7 @@ gogetvers checkout -f MANIFEST [PATH]
     If any of the dependencies have local modifications then
     no work is performed.
 
-gogetvers print [-f MANIFEST] [PATH]
+gogetvers print [-f MANIFEST] | [PATH]
     Print a summary of the MANIFEST file in PATH.  PATH
     defaults to current directory; MANIFEST defaults to
     gogetvers.manifest.

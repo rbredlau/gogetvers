@@ -30,6 +30,16 @@ func NewGoGetVers(path, file string, statusWriter io.Writer) (*GoGetVers, error)
 	return rv, nil
 }
 
+func (g *GoGetVers) Const() error {
+	if g == nil {
+		return errors.New("nil receiver")
+	}
+	g.status.Printf("Creating constant file from manifest @ %v\n", g.file)
+	g.status.Printf("Output location @ %v\n", g.path)
+	//
+	var err error
+}
+
 func (g *GoGetVers) Checkout() error {
 	if g == nil {
 		return errors.New("nil receiver")

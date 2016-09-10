@@ -38,6 +38,41 @@ func (g *GoGetVers) Const() error {
 	g.status.Printf("Output location @ %v\n", g.path)
 	//
 	var err error
+	g.packageInfo, err = loadPackageInfoFile(g.file)
+	if err != nil {
+		g.status.Error(err)
+		return err
+	}
+	g.status.Writeln("Load manifest successful.")
+	//
+	template := strings.Replace(version_template, "$PACKAGE_NAME", fs.Basename(g.packageInfo.PackageDir), -1)
+	template = strings.Replace(template, "$CONSTANT_NAME", "VersionInfo", -1)
+	template = strings.Replace(template, "$TYPE_NAME", "VersionInfoType", -1)
+	template = strings.Replace(template, "$VERSION", g.packageInfo.Git.Describe, -1)
+	deps := []string{}
+	for _, dep := range g.packageInfo.DepsGit {
+		deps = append(deps, fmt.Sprintf("{\"%v\",\"%v\"}", dep.Git.HomeDir, dep.Git.Describe))
+	}
+	depsString := fmt.Sprintf("{%v}", strings.Join(deps, ","))
+	template = strings.Replace(template, "$DEPENDENCIES", depsString, -1)
+	/* TODO RM
+	$PACKAGE_NAME
+	$CONSTANT_NAME
+	$TYPE_NAME
+	$VERSION
+	$DEPENDENCIES
+	*/
+
+	/*TODO RM
+	  type $TYPE_NAME struct {
+	  	Version string
+	  	Dependencies []struct{
+	  		Name string
+	  		Version string
+	  	}
+	  }*/
+	//
+	return nil
 }
 
 func (g *GoGetVers) Checkout() error {

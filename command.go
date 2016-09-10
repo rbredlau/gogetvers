@@ -48,6 +48,11 @@ func newCommandGitStatus() *command {
 	return newCommand("git", "status", "--porcelain")
 }
 
+func newCommandGoFmt(file ...string) *command {
+	args := append([]string{"fmt"}, file...)
+	return newCommand("go", args...)
+}
+
 func newCommandGoList() *command {
 	return newCommand("go", "list")
 }

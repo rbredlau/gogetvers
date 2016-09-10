@@ -30,7 +30,8 @@ func NewGoGetVers(path, file string, statusWriter io.Writer) (*GoGetVers, error)
 	return rv, nil
 }
 
-func (g *GoGetVers) Const(outputFile string) error {
+// Use package name from manifest file if packageName is empty string.
+func (g *GoGetVers) Const(outputFile, packageName string) error {
 	if g == nil {
 		return errors.New("nil receiver")
 	}
@@ -45,7 +46,10 @@ func (g *GoGetVers) Const(outputFile string) error {
 	}
 	g.status.Writeln("Load manifest successful.")
 	//
-	template := strings.Replace(version_template, "$PACKAGE_NAME", fs.Basename(g.packageInfo.PackageDir), -1)
+	if packageName == "" {
+		packageName = fs.Basename(g.packageInfo.PackageDir)
+	}
+	template := strings.Replace(version_template, "$PACKAGE_NAME", packageName, -1)
 	template = strings.Replace(template, "$CONSTANT_NAME", "VersionInfo", -1)
 	template = strings.Replace(template, "$TYPE_NAME", "VersionInfoType", -1)
 	template = strings.Replace(template, "$VERSION", fmt.Sprintf("\"%v\"", g.packageInfo.Git.Describe), -1)

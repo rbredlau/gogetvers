@@ -15,7 +15,7 @@ var (
 
 func main() {
 	var cwd, path, file string
-	var dashg string
+	var dashg, dashn string
 	exitCode := 0
 	defer func() {
 		os.Exit(exitCode)
@@ -48,29 +48,25 @@ func main() {
 		parsedPath := false
 		for len(args) > 0 {
 			curr := len(args)
-			//
-			if len(args) > 0 && args[0] == "-f" {
-				if len(args) >= 2 {
-					file = args[1]
+			opts := []struct {
+				flag   string
+				target *string
+			}{
+				{"-f", &file},
+				{"-g", &dashg},
+				{"-n", &dashn}}
+			for _, opt := range opts {
+				if len(args) > 0 && args[0] == opt.flag {
+					if len(args) >= 2 {
+						opt.target = &args[1]
+						args = args[1:]
+					} else {
+						fmt.Printf("Error: Missing value for %v\n", opt.flag)
+						exitCode = 1
+						return
+					}
 					args = args[1:]
-				} else {
-					fmt.Println("Error: Missing value for -f")
-					exitCode = 1
-					return
 				}
-				args = args[1:]
-			}
-			//
-			if len(args) > 0 && args[0] == "-g" {
-				if len(args) >= 2 {
-					dashg = args[1]
-					args = args[1:]
-				} else {
-					fmt.Println("Error: Missing value for -g")
-					exitCode = 1
-					return
-				}
-				args = args[1:]
 			}
 			//
 			if len(args) == 1 {
@@ -146,11 +142,11 @@ func dorebuild() error {
 	return goget.Rebuild()
 }
 
-func doconst(gofile string) error {
+func doconst(gofile, packageName string) error {
 	if gofile == "" {
 		gofile = "generated_gogetvers.go"
 	}
-	return goget.Const(gofile)
+	return goget.Const(gofile, packageName)
 }
 
 func doversion() {
@@ -192,11 +188,13 @@ gogetvers print [-f MANIFEST] | [PATH]
     defaults to current directory; MANIFEST defaults to
     gogetvers.manifest.
 
-gogetvers const -f MANIFEST [-g GOFILE] [PATH]
+gogetvers const -f MANIFEST [-g GOFILE] [-n PACKAGENAME] [PATH]
     Create a go source file with version information at PATH
     if provided or in current directory otherwise using MANIFEST
 	file.  GOFILE is the output filename or generated_gogetvers.go
-	if omitted.
+	if omitted.  By default PACKAGENAME will be extracted from
+	MANIFEST; use this option to specify another name (i.e. for
+	'main').
 `
 	fmt.Printf(usage)
 }

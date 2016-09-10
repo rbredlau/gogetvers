@@ -63,11 +63,14 @@ func (g *GoGetVers) Checkout() error {
 	}
 	// Checkout gits with nomods
 	for _, git := range nomods {
-		fmt.Printf("git checkout->%#v\n", git) //TODO RM
+		g.status.Printf("checkout %v\n", git.HomeDir)
+		git.Checkout()
 	}
 	// Clone non-existing gis
 	for _, git := range dne {
-		fmt.Printf("git clone->%#v\n", git) //TODO RM
+		g.status.Printf("cloning %v\n", git.HomeDir)
+		git.Clone(true)
+		git.Checkout()
 	}
 	//
 	return nil

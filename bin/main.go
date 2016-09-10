@@ -2,6 +2,7 @@ package main
 
 import (
 	fs "broadlux/fileSystem"
+	"errors"
 	"fmt"
 	gv "gogetvers"
 	"os"
@@ -14,6 +15,7 @@ var (
 
 func main() {
 	var cwd, path, file string
+	var dashg string
 	exitCode := 0
 	defer func() {
 		os.Exit(exitCode)
@@ -46,7 +48,8 @@ func main() {
 		parsedPath := false
 		for len(args) > 0 {
 			curr := len(args)
-			if args[0] == "-f" {
+			//
+			if len(args) > 0 && args[0] == "-f" {
 				if len(args) >= 2 {
 					file = args[1]
 					args = args[1:]
@@ -57,6 +60,19 @@ func main() {
 				}
 				args = args[1:]
 			}
+			//
+			if len(args) > 0 && args[0] == "-g" {
+				if len(args) >= 2 {
+					dashg = args[1]
+					args = args[1:]
+				} else {
+					fmt.Println("Error: Missing value for -g")
+					exitCode = 1
+					return
+				}
+				args = args[1:]
+			}
+			//
 			if len(args) == 1 {
 				path = args[0]
 				args = args[1:]
@@ -86,6 +102,7 @@ func main() {
 		}
 		goget, err = gv.NewGoGetVers(path, file, os.Stdout)
 		if err != nil {
+			fmt.Printf("Error: %v\n", err.Error())
 			exitCode = 1
 			return
 		}
@@ -93,13 +110,15 @@ func main() {
 		case "checkout":
 			err = docheckout()
 		case "const":
-			err = doconst()
+			err = doconst(dashg)
 		case "make":
 			err = domake()
 		case "print":
 			err = doprint()
 		case "rebuild":
 			err = dorebuild()
+		default:
+			err = errors.New("no sub command")
 		}
 		if err != nil {
 			fmt.Println("Error:", err.Error())
@@ -127,8 +146,11 @@ func dorebuild() error {
 	return goget.Rebuild()
 }
 
-func doconst() error {
-	return goget.Const()
+func doconst(gofile string) error {
+	if gofile == "" {
+		gofile = "generated_gogetvers.go"
+	}
+	return goget.Const(gofile)
 }
 
 func doversion() {
@@ -170,11 +192,11 @@ gogetvers print [-f MANIFEST] | [PATH]
     defaults to current directory; MANIFEST defaults to
     gogetvers.manifest.
 
-gogetvers const [-f FILE] [PATH]
+gogetvers const -f MANIFEST [-g GOFILE] [PATH]
     Create a go source file with version information at PATH
-    if provided or in current directory otherwise.  FILE can
-    be used to specify the file name; if omitted file will
-    be named generated_gogetvers.go.
+    if provided or in current directory otherwise using MANIFEST
+	file.  GOFILE is the output filename or generated_gogetvers.go
+	if omitted.
 `
 	fmt.Printf(usage)
 }

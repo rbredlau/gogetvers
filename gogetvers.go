@@ -30,7 +30,7 @@ func NewGoGetVers(path, file string, statusWriter io.Writer) (*GoGetVers, error)
 	return rv, nil
 }
 
-func (g *GoGetVers) Const() error {
+func (g *GoGetVers) Const(outputFile string) error {
 	if g == nil {
 		return errors.New("nil receiver")
 	}
@@ -48,29 +48,30 @@ func (g *GoGetVers) Const() error {
 	template := strings.Replace(version_template, "$PACKAGE_NAME", fs.Basename(g.packageInfo.PackageDir), -1)
 	template = strings.Replace(template, "$CONSTANT_NAME", "VersionInfo", -1)
 	template = strings.Replace(template, "$TYPE_NAME", "VersionInfoType", -1)
-	template = strings.Replace(template, "$VERSION", g.packageInfo.Git.Describe, -1)
+	template = strings.Replace(template, "$VERSION", fmt.Sprintf("\"%v\"", g.packageInfo.Git.Describe), -1)
 	deps := []string{}
 	for _, dep := range g.packageInfo.DepsGit {
 		deps = append(deps, fmt.Sprintf("{\"%v\",\"%v\"}", dep.Git.HomeDir, dep.Git.Describe))
 	}
 	depsString := fmt.Sprintf("{%v}", strings.Join(deps, ","))
 	template = strings.Replace(template, "$DEPENDENCIES", depsString, -1)
-	/* TODO RM
-	$PACKAGE_NAME
-	$CONSTANT_NAME
-	$TYPE_NAME
-	$VERSION
-	$DEPENDENCIES
-	*/
-
-	/*TODO RM
-	  type $TYPE_NAME struct {
-	  	Version string
-	  	Dependencies []struct{
-	  		Name string
-	  		Version string
-	  	}
-	  }*/
+	//
+	fw, err := os.Create(outputFile)
+	if err != nil {
+		g.status.Error(err)
+		return err
+	}
+	defer fw.Close()
+	wrote, err := fw.WriteString(template)
+	if err != nil {
+		g.status.Error(err)
+		return err
+	}
+	if wrote != len(template) {
+		err = errors.New(fmt.Sprintf("partial file write @ %v", outputFile))
+		g.status.Error(err)
+		return err
+	}
 	//
 	return nil
 }

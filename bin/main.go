@@ -150,7 +150,11 @@ func doconst(gofile, packageName string) error {
 }
 
 func doversion() {
-	fmt.Printf("gogetvers version %v\n", "TODO: FILL ME IN")
+	v := "gogetvers version " + VersionInfo.Version + "\n"
+	for _, dep := range VersionInfo.Dependencies {
+		v = v + "    " + dep.Name + ", " + dep.Version + "\n"
+	}
+	fmt.Println(v)
 }
 
 func dousage() {
@@ -191,10 +195,10 @@ gogetvers print [-f MANIFEST] | [PATH]
 gogetvers const -f MANIFEST [-g GOFILE] [-n PACKAGENAME] [PATH]
     Create a go source file with version information at PATH
     if provided or in current directory otherwise using MANIFEST
-	file.  GOFILE is the output filename or generated_gogetvers.go
-	if omitted.  By default PACKAGENAME will be extracted from
-	MANIFEST; use this option to specify another name (i.e. for
-	'main').
+    file.  GOFILE is the output filename or generated_gogetvers.go
+    if omitted.  By default PACKAGENAME will be extracted from
+    MANIFEST; use this option to specify another name (i.e. for
+    'main').
 `
 	fmt.Printf(usage)
 }

@@ -57,7 +57,7 @@ func (g *GoGetVers) Const(outputFile, packageName string) error {
 	for _, dep := range g.packageInfo.DepsGit {
 		deps = append(deps, fmt.Sprintf("{\"%v\",\"%v\"}", dep.Git.HomeDir, dep.Git.Describe))
 	}
-	depsString := fmt.Sprintf("{%v}", strings.Join(deps, ","))
+	depsString := fmt.Sprintf("{%v}", strings.Join(deps, ",\n"))
 	template = strings.Replace(template, "$DEPENDENCIES", depsString, -1)
 	//
 	fw, err := os.Create(outputFile)
@@ -73,6 +73,13 @@ func (g *GoGetVers) Const(outputFile, packageName string) error {
 	}
 	if wrote != len(template) {
 		err = errors.New(fmt.Sprintf("partial file write @ %v", outputFile))
+		g.status.Error(err)
+		return err
+	}
+	//
+	cmd := newCommandGoFmt(fs.Basename(outputFile))
+	err = cmd.exec(fs.Dir(outputFile))
+	if err != nil {
 		g.status.Error(err)
 		return err
 	}

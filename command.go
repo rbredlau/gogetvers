@@ -49,8 +49,7 @@ func newCommandGitStatus() *command {
 }
 
 func newCommandGoFmt(file ...string) *command {
-	args := append([]string{"fmt"}, file...)
-	return newCommand("go", args...)
+	return newCommand("go", append([]string{"fmt"}, file...)...)
 }
 
 func newCommandGoList() *command {

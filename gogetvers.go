@@ -50,7 +50,7 @@ func (g *GoGetVers) Const(outputFile, packageName string) error {
 		packageName = fs.Basename(g.packageInfo.PackageDir)
 	}
 	template := strings.Replace(version_template, "$PACKAGE_NAME", packageName, -1)
-	template = strings.Replace(template, "$CONSTANT_NAME", "VersionInfo", -1)
+	template = strings.Replace(template, "$VARNAME", "VersionInfo", -1)
 	template = strings.Replace(template, "$TYPE_NAME", "VersionInfoType", -1)
 	template = strings.Replace(template, "$VERSION", fmt.Sprintf("\"%v\"", g.packageInfo.Git.Describe), -1)
 	deps := []string{}

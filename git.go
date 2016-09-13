@@ -111,7 +111,7 @@ func (g *Git) Clone(mkdirs bool) error {
 		return errors.New("nil receiver")
 	}
 	var err error
-	parentDir := Dir(g.HomeDir)
+	parentDir := filepath.Dir(g.HomeDir)
 	if !IsDir(parentDir) && mkdirs {
 		err = Mkdir(parentDir, 0770)
 		if err != nil {
@@ -122,7 +122,7 @@ func (g *Git) Clone(mkdirs bool) error {
 		err = errors.New(fmt.Sprintf("Not a dir @ %v", parentDir))
 		return err
 	}
-	cmd := NewCommandGitClone("master", g.OriginUrl, Basename(g.HomeDir))
+	cmd := NewCommandGitClone("master", g.OriginUrl, filepath.Base(g.HomeDir))
 	err = cmd.Exec(parentDir)
 	if err != nil {
 		return err

@@ -4,43 +4,43 @@ import (
 	"strings"
 )
 
-type dependency interface {
-	dependency()
+type Dependency interface {
+	Dependency()
 }
 
-type dependencyComposite struct{}
+type DependencyComposite struct{}
 
-func (d dependencyComposite) dependency() {}
+func (d DependencyComposite) Dependency() {}
 
-type builtinDependency struct {
+type BuiltinDependency struct {
 	Name string
 	// For dependency interface
-	dependencyComposite
+	DependencyComposite
 }
 
-type gitDependency struct {
+type GitDependency struct {
 	Name string
 	Git  *Git
 	// For dependency interface
-	dependencyComposite
+	DependencyComposite
 }
 
-type untrackedDependency struct {
+type UntrackedDependency struct {
 	Name string
 	// For dependency interface
-	dependencyComposite
+	DependencyComposite
 }
 
-func getDependency(dependencyDir, rootDir string) (dependency, error) {
+func GetDependency(dependencyDir, rootDir string) (Dependency, error) {
 	name := strings.Replace(dependencyDir, rootDir, "", 1)
 	if !IsDir(dependencyDir) {
 		// Must be a golang built in
-		return &builtinDependency{Name: name, dependencyComposite: dependencyComposite{}}, nil
+		return &BuiltinDependency{Name: name, DependencyComposite: DependencyComposite{}}, nil
 	}
 	git, err := newGitByFind(dependencyDir, rootDir)
 	if err != nil {
 		// Not a git repo so not trackable
-		return &untrackedDependency{Name: name, dependencyComposite: dependencyComposite{}}, nil
+		return &UntrackedDependency{Name: name, DependencyComposite: DependencyComposite{}}, nil
 	}
-	return &gitDependency{Name: name, Git: git, dependencyComposite: dependencyComposite{}}, nil
+	return &GitDependency{Name: name, Git: git, DependencyComposite: DependencyComposite{}}, nil
 }

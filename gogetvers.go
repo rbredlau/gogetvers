@@ -46,7 +46,7 @@ func (g *GoGetVers) Const(outputFile, packageName string) error {
 	g.status.Writeln("Load manifest successful.")
 	//
 	if packageName == "" {
-		packageName = Basename(g.packageInfo.PackageDir)
+		packageName = filepath.Base(g.packageInfo.PackageDir)
 	}
 	template := strings.Replace(version_template, "$PACKAGE_NAME", packageName, -1)
 	template = strings.Replace(template, "$VARNAME", "VersionInfo", -1)
@@ -76,8 +76,8 @@ func (g *GoGetVers) Const(outputFile, packageName string) error {
 		return err
 	}
 	//
-	cmd := NewCommandGoFmt(Basename(outputFile))
-	err = cmd.Exec(Dir(outputFile))
+	cmd := NewCommandGoFmt(filepath.Base(outputFile))
+	err = cmd.Exec(filepath.Dir(outputFile))
 	if err != nil {
 		g.status.Error(err)
 		return err

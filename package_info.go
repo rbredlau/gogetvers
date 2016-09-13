@@ -15,9 +15,9 @@ type PackageInfo struct {
 	RootDir    string // The root directory that contains everything.
 	Git        *Git   // Git info for package.
 	// Dependencies
-	DepsBuiltin   []*builtinDependency
-	DepsGit       []*gitDependency
-	DepsUntracked []*untrackedDependency
+	DepsBuiltin   []*BuiltinDependency
+	DepsGit       []*GitDependency
+	DepsUntracked []*UntrackedDependency
 	//
 	*pathsComposite
 }
@@ -26,9 +26,9 @@ func newPackageInfo(packageDir, rootDir string) *PackageInfo {
 	rv := &PackageInfo{
 		PackageDir:    packageDir,
 		RootDir:       rootDir,
-		DepsBuiltin:   []*builtinDependency{},
-		DepsGit:       []*gitDependency{},
-		DepsUntracked: []*untrackedDependency{}}
+		DepsBuiltin:   []*BuiltinDependency{},
+		DepsGit:       []*GitDependency{},
+		DepsUntracked: []*UntrackedDependency{}}
 	rv.setPathsComposite()
 	return rv
 }
@@ -119,19 +119,19 @@ func getPackageInfo(packageDir string, status *StatusWriter) (*PackageInfo, erro
 	deps := strings.Split(golistdeps.Output, " ")
 	for _, depName := range deps {
 		status.Printf("%v...", depName)
-		dep, err := getDependency(filepath.Join(rv.RootDir, depName), rv.RootDir)
+		dep, err := GetDependency(filepath.Join(rv.RootDir, depName), rv.RootDir)
 		if err != nil {
 			status.Error(err)
 			return nil, err
 		}
 		switch d := dep.(type) {
-		case *builtinDependency:
+		case *BuiltinDependency:
 			status.Printf("built in\n")
 			rv.DepsBuiltin = append(rv.DepsBuiltin, d)
-		case *gitDependency:
+		case *GitDependency:
 			status.Printf("git\n")
 			rv.DepsGit = append(rv.DepsGit, d)
-		case *untrackedDependency:
+		case *UntrackedDependency:
 			status.Printf("untracked dependency\n")
 			rv.DepsUntracked = append(rv.DepsUntracked, d)
 		}

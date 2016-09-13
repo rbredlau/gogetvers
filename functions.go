@@ -2,18 +2,7 @@ package gogetvers
 
 import (
 	"os"
-	"path/filepath"
 )
-
-// Returns basename from path.
-func Basename(path string) string {
-	return filepath.Base(path)
-}
-
-// Dir returns all but the last element of path.
-func Dir(path string) string {
-	return filepath.Dir(path)
-}
 
 // Determines if path is a file; returns true if it is.
 func IsFile(path string) bool {

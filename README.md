@@ -73,6 +73,55 @@ gogetvers const -f MANIFEST [-g GOFILE] [-n PACKAGENAME] [PATH]
     'main').
 ```
 
+#Examples
+
+##gogetvers make
+Makes the manifest file.
+```
+# Make manifest for myproject
+$ cd $GOPATH/src/myproject
+$ gogetvers make
+# or
+$ gogetvers make $GOPATH/src/myproject
+```
+
+##gogetvers print
+Prints a summary of the manifest file.
+```
+# Print existing manifest in current directory.
+$ cd $GOPATH/src/myproject
+$ gogetvers print
+# or
+$ gogetvers print $GOPATH/src/myproject
+# or
+$ gogetvers print -f $GOPATH/src/myproject/gogetvers.manifest
+```
+
+##gogetvers rebuild
+Clones the repositories from the manifest into a given path; none
+of the repositories in the manifest can exist in the destination path.
+```
+$ mkdir foo
+$ gogetvers rebuild -f $GOPATH/src/myproject/gogetvers.manifest foo
+# or
+$ mkdir bar
+$ cd bar
+$ gogetvers rebuild -f $GOPATH/src/myproject/gogetvers.manifest
+```
+
+##gogetvers checkout
+The same as rebuild except the repositories from the manifest CAN exist on disk;
+they will be checked out with the hash described in the manifest or cloned if
+it doesn't exist on disk.  `checkout` can only be used if existing repositories
+do not have local modifications.
+```
+$ cd $GOPATH/src/myproject
+$ git checkout oldversion
+$ gogetvers checkout
+$ # Dependencies of myproject under $GOPATH will have be reverted to the
+$ # hashes described in ./gogetvers.manifest
+```
+
 #@TODO
 + Implement `gogetvers tag`
 + `gogetvers make` should issue warnings if any package has local modifications.

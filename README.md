@@ -167,11 +167,10 @@ gogetvers is not for you.
 
 ###Known bugs
 gogetvers considers a dependency *trackable* if it has a .git directory in its root 
-directory structure or in any of its parent directories.  If the .git directory is 
+directory or in any of its parent directories.  If the .git directory is 
 in a parent directory that excludes the dependency via .gitignore then gogetvers 
 considers the dependency *tracked* even though it is ignored by source code control.
 
 ###@TODO
 + Implement `gogetvers tag`
-+ `gogetvers make` should issue warnings if any package has local modifications.
 

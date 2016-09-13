@@ -183,6 +183,21 @@ func (g *GoGetVers) Make() error {
 	g.PackageInfo.StripPathPrefix(g.PackageInfo.RootDir)
 	g.Status.Writeln(g.PackageInfo.getSummary())
 	//
+	gits := g.PackageInfo.getGits()
+	gitsWMods := []string{}
+	for _, git := range gits {
+		if git.Status != "" {
+			gitsWMods = append(gitsWMods, git.HomeDir)
+		}
+	}
+	if len(gitsWMods) > 0 {
+		g.Status.Warning("The following dependencies have local modifications.")
+		g.Status.Indent()
+		g.Status.Writeln(strings.Join(gitsWMods, ", "))
+		g.Status.Writeln("")
+		g.Status.Outdent()
+	}
+	//
 	g.Status.Printf("Writing output to %v\n", g.File)
 	g.Status.Indent()
 	fw, err := os.Create(g.File)

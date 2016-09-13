@@ -15,12 +15,12 @@ type Git struct {
 	Describe  string
 	Status    string
 	//
-	*pathsComposite
+	*PathsComposite
 }
 
 // Starts at path and works upwards looking for .git directory.
 // Stops when it reaches stopDir and returns an error.
-func findGitDir(path, stopDir string) (string, error) {
+func FindGitDir(path, stopDir string) (string, error) {
 	if path == "" || !IsDir(path) {
 		return "", errors.New(fmt.Sprintf("Not a path @ %v", path))
 	}
@@ -38,14 +38,14 @@ func findGitDir(path, stopDir string) (string, error) {
 		}
 		return abs, nil
 	}
-	return findGitDir(filepath.Dir(path), stopDir)
+	return FindGitDir(filepath.Dir(path), stopDir)
 }
 
 // Start at path and look upwards for a .git directory, stopping
 // if stopDir is reached.  Return a git type from the found
 // .git directory.
-func newGitByFind(path, stopDir string) (*Git, error) {
-	gitDir, err := findGitDir(path, stopDir)
+func NewGitByFind(path, stopDir string) (*Git, error) {
+	gitDir, err := FindGitDir(path, stopDir)
 	if err != nil {
 		return nil, err
 	}
@@ -62,7 +62,7 @@ func NewGit(path string) (rv *Git, rverr error) {
 	}
 	//
 	rv = &Git{HomeDir: path}
-	rv.setPathsComposite()
+	rv.SetPathsComposite()
 	type tempIterator struct {
 		command *Command
 		target  *string
@@ -99,9 +99,9 @@ func NewGit(path string) (rv *Git, rverr error) {
 }
 
 // Sets the pathsComposite member.
-func (g *Git) setPathsComposite() {
+func (g *Git) SetPathsComposite() {
 	if g != nil {
-		g.pathsComposite = newPathsComposite(&g.HomeDir)
+		g.PathsComposite = NewPathsComposite(&g.HomeDir)
 	}
 }
 

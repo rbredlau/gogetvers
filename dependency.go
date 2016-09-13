@@ -37,7 +37,7 @@ func GetDependency(dependencyDir, rootDir string) (Dependency, error) {
 		// Must be a golang built in
 		return &BuiltinDependency{Name: name, DependencyComposite: DependencyComposite{}}, nil
 	}
-	git, err := newGitByFind(dependencyDir, rootDir)
+	git, err := NewGitByFind(dependencyDir, rootDir)
 	if err != nil {
 		// Not a git repo so not trackable
 		return &UntrackedDependency{Name: name, DependencyComposite: DependencyComposite{}}, nil

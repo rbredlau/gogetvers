@@ -19,32 +19,32 @@ type PackageInfo struct {
 	DepsGit       []*GitDependency
 	DepsUntracked []*UntrackedDependency
 	//
-	*pathsComposite
+	*PathsComposite
 }
 
-func newPackageInfo(packageDir, rootDir string) *PackageInfo {
+func NewPackageInfo(packageDir, rootDir string) *PackageInfo {
 	rv := &PackageInfo{
 		PackageDir:    packageDir,
 		RootDir:       rootDir,
 		DepsBuiltin:   []*BuiltinDependency{},
 		DepsGit:       []*GitDependency{},
 		DepsUntracked: []*UntrackedDependency{}}
-	rv.setPathsComposite()
+	rv.SetPathsComposite()
 	return rv
 }
 
-func (p *PackageInfo) setPathsComposite() {
+func (p *PackageInfo) SetPathsComposite() {
 	if p != nil {
-		p.pathsComposite = newPathsComposite(&p.PackageDir, &p.RootDir)
+		p.PathsComposite = NewPathsComposite(&p.PackageDir, &p.RootDir)
 		for _, dep := range p.DepsGit {
-			dep.Git.setPathsComposite()
+			dep.Git.SetPathsComposite()
 		}
-		p.Git.setPathsComposite()
+		p.Git.SetPathsComposite()
 	}
 }
 
 // Opens the input file and decodes the manifest.
-func loadPackageInfoFile(inputFile string) (*PackageInfo, error) {
+func LoadPackageInfoFile(inputFile string) (*PackageInfo, error) {
 	if !IsFile(inputFile) {
 		return nil, errors.New(fmt.Sprintf("Not a file @ %v", inputFile))
 	}
@@ -61,7 +61,7 @@ func loadPackageInfoFile(inputFile string) (*PackageInfo, error) {
 		return nil, err
 	}
 	// We have to reset paths composites as they aren't set in the JSON file.
-	summary.setPathsComposite()
+	summary.SetPathsComposite()
 	//
 	return summary, nil
 }
@@ -96,7 +96,7 @@ func getPackageInfo(packageDir string, status *StatusWriter) (*PackageInfo, erro
 	rootDir = strings.TrimRight(rootDir, "\\/")
 	status.Printf("Root path @ %v\n", rootDir)
 	// Get the git info for package.
-	git, err := newGitByFind(packageDir, rootDir)
+	git, err := NewGitByFind(packageDir, rootDir)
 	if err != nil {
 		status.Error(err)
 		return nil, err
@@ -111,7 +111,7 @@ func getPackageInfo(packageDir string, status *StatusWriter) (*PackageInfo, erro
 	}
 	status.Printf("Dependencies are: %v\n", strings.Replace(golistdeps.Output, " ", ", ", -1))
 	// Our return value.
-	rv := newPackageInfo(packageDir, rootDir)
+	rv := NewPackageInfo(packageDir, rootDir)
 	rv.Git = git
 	// Get information for each dependency.
 	status.Writeln("Getting dependency information...")
@@ -287,7 +287,7 @@ func (p *PackageInfo) StripPathPrefix(prefix string) {
 	if p == nil {
 		return
 	}
-	p.pathsComposite.StripPathPrefix(prefix)
+	p.PathsComposite.StripPathPrefix(prefix)
 	if p.Git != nil {
 		p.Git.StripPathPrefix(prefix)
 	}
@@ -300,7 +300,7 @@ func (p *PackageInfo) SetPathPrefix(prefix string) {
 	if p == nil {
 		return
 	}
-	p.pathsComposite.SetPathPrefix(prefix)
+	p.PathsComposite.SetPathPrefix(prefix)
 	if p.Git != nil {
 		p.Git.SetPathPrefix(prefix)
 	}
@@ -313,7 +313,7 @@ func (p *PackageInfo) PathsToSlash() {
 	if p == nil {
 		return
 	}
-	p.pathsComposite.PathsToSlash()
+	p.PathsComposite.PathsToSlash()
 	if p.Git != nil {
 		p.Git.PathsToSlash()
 	}
@@ -326,7 +326,7 @@ func (p *PackageInfo) PathsFromSlash() {
 	if p == nil {
 		return
 	}
-	p.pathsComposite.PathsFromSlash()
+	p.PathsComposite.PathsFromSlash()
 	if p.Git != nil {
 		p.Git.PathsFromSlash()
 	}

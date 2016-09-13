@@ -38,7 +38,7 @@ func (g *GoGetVers) Const(outputFile, packageName string) error {
 	g.status.Printf("Output location @ %v\n", g.path)
 	//
 	var err error
-	g.packageInfo, err = loadPackageInfoFile(g.file)
+	g.packageInfo, err = LoadPackageInfoFile(g.file)
 	if err != nil {
 		g.status.Error(err)
 		return err
@@ -94,7 +94,7 @@ func (g *GoGetVers) Checkout() error {
 	g.status.Printf("Output location @ %v\n", g.path)
 	//
 	var err error
-	g.packageInfo, err = loadPackageInfoFile(g.file)
+	g.packageInfo, err = LoadPackageInfoFile(g.file)
 	if err != nil {
 		g.status.Error(err)
 		return err
@@ -140,7 +140,7 @@ func (g *GoGetVers) Rebuild() error {
 	g.status.Printf("Output location @ %v\n", g.path)
 	//
 	var err error
-	g.packageInfo, err = loadPackageInfoFile(g.file)
+	g.packageInfo, err = LoadPackageInfoFile(g.file)
 	if err != nil {
 		g.status.Error(err)
 		return err
@@ -210,7 +210,7 @@ func (g *GoGetVers) Print() error {
 		return errors.New("nil receiver")
 	}
 	var err error
-	g.packageInfo, err = loadPackageInfoFile(g.file)
+	g.packageInfo, err = LoadPackageInfoFile(g.file)
 	if err != nil {
 		g.status.Error(err)
 		return err

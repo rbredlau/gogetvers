@@ -82,7 +82,12 @@ func main() {
 			}
 		}
 		if sub == "checkout" && !parsedPath {
-			// TODO USE GOPATH
+			envpath := os.Getenv("GOPATH")
+			if envpath == "" {
+				fmt.Println("Error: GOPATH is not set.")
+				exitCode = 1
+				return
+			}
 		}
 		if !gv.IsDir(path) {
 			fmt.Println(fmt.Sprintf("Error: PATH is not a directory: %v", path))

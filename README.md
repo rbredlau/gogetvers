@@ -139,6 +139,32 @@ $ # Dependencies of myproject under $GOPATH will have be reverted to the
 $ # hashes described in ./gogetvers.manifest
 ```
 
+##This looks great but there's a HUGE problem...
+gogetvers doesn't make a *deep copy* of dependencies.  If the git repositories
+move or disappear then gogetvers can't `rebuild` or `checkout` old versions.  (*You
+can always edit the manifest by hand to point at new locations if necessary though.*)
+
+I think this is OK.
+
+The most common use case for checking out old code is to duplicate a bug to make
+a fix.  Most often this happens with recent versions - therefore access to the
+dependencies in a manifest file will probably still be available.
+
+If a dependency for your project disappears entirely from the internet then
+there's a good chance it is no longer maintained and you should be looking for
+a suitable replacement anyways.  If this happens and a bug is reported for
+an old version you will most likely want to update the bug reporter to the newest
+version anyways.
+
+And finally - if you must always be able to rebuild the structure described in a
+gogetvers manifest - you can always use `git clone --mirror` to clone a repository
+to a location that's always available to you, optionally performing backups on
+that location.
+
+If you absolutely must immortalize and forever make available everything your
+project was built with - or if you disagree with the reasoning given - then
+gogetvers is not for you.
+
 ##@TODO
 + Implement `gogetvers tag`
 + `gogetvers make` should issue warnings if any package has local modifications.

@@ -165,7 +165,13 @@ If you absolutely must immortalize and forever make available everything your
 project was built with - or if you disagree with the reasoning given - then
 gogetvers is not for you.
 
-##@TODO
+###Known bugs
+gogetvers considers a dependency *trackable* if it has a .git directory in its root 
+directory structure or in any of its parent directories.  If the .git directory is 
+in a parent directory that excludes the dependency via .gitignore then gogetvers 
+considers the dependency *tracked* even though it is ignored by source code control.
+
+###@TODO
 + Implement `gogetvers tag`
 + `gogetvers make` should issue warnings if any package has local modifications.
 

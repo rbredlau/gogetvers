@@ -172,7 +172,7 @@ func (p *PackageInfo) getGits() GitList {
 	gits := []*Git{}
 	found := make(map[string]bool)
 	if p == nil {
-		return newGitList(gits...)
+		return NewGitList(gits...)
 	}
 	// Dependency gits
 	for _, dep := range p.DepsGit {
@@ -187,7 +187,7 @@ func (p *PackageInfo) getGits() GitList {
 		gits = append(gits, p.Git)
 	}
 	// Return value sorted
-	rv := newGitList(gits...)
+	rv := NewGitList(gits...)
 	rv.Sort()
 	return rv
 }
@@ -196,7 +196,7 @@ func (p *PackageInfo) getGits() GitList {
 func (p *PackageInfo) getGitsDiskStatus() (exist GitList, dne GitList) {
 	yeslist, nolist := []*Git{}, []*Git{}
 	if p == nil {
-		return newGitList(yeslist...), newGitList(nolist...)
+		return NewGitList(yeslist...), NewGitList(nolist...)
 	}
 	//
 	for _, v := range p.getGits() {
@@ -207,9 +207,9 @@ func (p *PackageInfo) getGitsDiskStatus() (exist GitList, dne GitList) {
 		}
 	}
 	// Return value sorted
-	exist = newGitList(yeslist...)
+	exist = NewGitList(yeslist...)
 	exist.Sort()
-	dne = newGitList(nolist...)
+	dne = NewGitList(nolist...)
 	dne.Sort()
 	return
 }
@@ -219,7 +219,7 @@ func (p *PackageInfo) getGitsDiskStatus() (exist GitList, dne GitList) {
 func (p *PackageInfo) getGitsLocalModsStatus() (mods GitList, nomods GitList, dne GitList, rverr error) {
 	yeslist, nolist, dnelist := []*Git{}, []*Git{}, []*Git{}
 	if p == nil {
-		return newGitList(yeslist...), newGitList(nolist...), newGitList(dnelist...), errors.New("nil receiver")
+		return NewGitList(yeslist...), NewGitList(nolist...), NewGitList(dnelist...), errors.New("nil receiver")
 	}
 	//
 	exist, dne := p.getGitsDiskStatus()
@@ -235,9 +235,9 @@ func (p *PackageInfo) getGitsLocalModsStatus() (mods GitList, nomods GitList, dn
 		}
 	}
 	// Return value sorted
-	mods = newGitList(yeslist...)
+	mods = NewGitList(yeslist...)
 	mods.Sort()
-	nomods = newGitList(nolist...)
+	nomods = NewGitList(nolist...)
 	nomods.Sort()
 	dne.Sort()
 	return

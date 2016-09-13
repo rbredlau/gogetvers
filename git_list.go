@@ -7,7 +7,7 @@ import (
 
 type GitList []*Git
 
-func newGitList(item ...*Git) GitList {
+func NewGitList(item ...*Git) GitList {
 	return append([]*Git{}, item...)
 }
 

@@ -78,16 +78,16 @@ func getPackageInfo(packageDir string, status *StatusWriter) (*PackageInfo, erro
 	//
 	status.Printf("Get package info for package @ %v\n", packageDir)
 	// Get 'go list' information; this is package information according to golang.
-	golist := newCommandGoList()
-	err = golist.exec(packageDir)
+	golist := NewCommandGoList()
+	err = golist.Exec(packageDir)
 	if err != nil {
 		status.Error(err)
 		return nil, err
 	}
-	status.Printf("%v -> %v\n", golist.String(), golist.output)
+	status.Printf("%v -> %v\n", golist.String(), golist.Output)
 	// If we remove the output from golist from packageDir then
 	// we'll have root directory of all sources.
-	rootDir := strings.Replace(filepath.ToSlash(packageDir), golist.output, "", -1)
+	rootDir := strings.Replace(filepath.ToSlash(packageDir), golist.Output, "", -1)
 	rootDir, err = filepath.Abs(rootDir)
 	if err != nil {
 		status.Error(err)
@@ -103,20 +103,20 @@ func getPackageInfo(packageDir string, status *StatusWriter) (*PackageInfo, erro
 	}
 	status.Writeln("Found package git information")
 	// Get dependency information.
-	golistdeps := newCommandGoListDeps()
-	err = golistdeps.exec(packageDir)
+	golistdeps := NewCommandGoListDeps()
+	err = golistdeps.Exec(packageDir)
 	if err != nil {
 		status.Error(err)
 		return nil, err
 	}
-	status.Printf("Dependencies are: %v\n", strings.Replace(golistdeps.output, " ", ", ", -1))
+	status.Printf("Dependencies are: %v\n", strings.Replace(golistdeps.Output, " ", ", ", -1))
 	// Our return value.
 	rv := newPackageInfo(packageDir, rootDir)
 	rv.Git = git
 	// Get information for each dependency.
 	status.Writeln("Getting dependency information...")
 	status.Indent()
-	deps := strings.Split(golistdeps.output, " ")
+	deps := strings.Split(golistdeps.Output, " ")
 	for _, depName := range deps {
 		status.Printf("%v...", depName)
 		dep, err := getDependency(filepath.Join(rv.RootDir, depName), rv.RootDir)

@@ -76,8 +76,8 @@ func (g *GoGetVers) Const(outputFile, packageName string) error {
 		return err
 	}
 	//
-	cmd := newCommandGoFmt(Basename(outputFile))
-	err = cmd.exec(Dir(outputFile))
+	cmd := NewCommandGoFmt(Basename(outputFile))
+	err = cmd.Exec(Dir(outputFile))
 	if err != nil {
 		g.status.Error(err)
 		return err

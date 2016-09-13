@@ -64,20 +64,20 @@ func NewGit(path string) (rv *Git, rverr error) {
 	rv = &Git{HomeDir: path}
 	rv.setPathsComposite()
 	type tempIterator struct {
-		command *command
+		command *Command
 		target  *string
 	}
 	commands := []tempIterator{
-		tempIterator{newCommandGitBranch(), &rv.Branch},
-		tempIterator{newCommandGitOrigin(), &rv.OriginUrl},
-		tempIterator{newCommandGitHash(), &rv.Hash},
-		tempIterator{newCommandGitStatus(), &rv.Status},
-		tempIterator{newCommandGitDescribe(), &rv.Describe}}
+		tempIterator{NewCommandGitBranch(), &rv.Branch},
+		tempIterator{NewCommandGitOrigin(), &rv.OriginUrl},
+		tempIterator{NewCommandGitHash(), &rv.Hash},
+		tempIterator{NewCommandGitStatus(), &rv.Status},
+		tempIterator{NewCommandGitDescribe(), &rv.Describe}}
 	//
 	for _, cmd := range commands {
-		err := cmd.command.exec(path)
+		err := cmd.command.Exec(path)
 		if err == nil {
-			*cmd.target = cmd.command.output
+			*cmd.target = cmd.command.Output
 		}
 	}
 	if rverr != nil {
@@ -122,8 +122,8 @@ func (g *Git) Clone(mkdirs bool) error {
 		err = errors.New(fmt.Sprintf("Not a dir @ %v", parentDir))
 		return err
 	}
-	cmd := newCommandGitClone("master", g.OriginUrl, Basename(g.HomeDir))
-	err = cmd.exec(parentDir)
+	cmd := NewCommandGitClone("master", g.OriginUrl, Basename(g.HomeDir))
+	err = cmd.Exec(parentDir)
 	if err != nil {
 		return err
 	}
@@ -140,8 +140,8 @@ func (g *Git) Checkout() error {
 		err = errors.New(fmt.Sprintf("Not a dir @ %v", g.HomeDir))
 		return err
 	}
-	cmd := newCommandGitCheckout(g.Hash)
-	err = cmd.exec(g.HomeDir)
+	cmd := NewCommandGitCheckout(g.Hash)
+	err = cmd.Exec(g.HomeDir)
 	if err != nil {
 		return err
 	}

@@ -10,88 +10,88 @@ import (
 	"syscall"
 )
 
-type funcCommandOutputProcessor func(output string) string
+type FuncCommandOutputProcessor func(output string) string
 
-type command struct {
-	bin             string
-	args            []string
-	output          string
-	exitCode        int
-	outputProcessor funcCommandOutputProcessor
+type Command struct {
+	Bin             string
+	Args            []string
+	Output          string
+	ExitCode        int
+	OutputProcessor FuncCommandOutputProcessor
 }
 
-func newCommandGitBranch() *command {
-	return newCommand("git", "branch")
+func NewCommandGitBranch() *Command {
+	return NewCommand("git", "branch")
 }
 
-func newCommandGitCheckout(hash string) *command {
-	return newCommand("git", "checkout", hash)
+func NewCommandGitCheckout(hash string) *Command {
+	return NewCommand("git", "checkout", hash)
 }
 
-func newCommandGitClone(branch, origin, outputDir string) *command {
-	return newCommand("git", "clone", "-b", branch, origin, outputDir)
+func NewCommandGitClone(branch, origin, outputDir string) *Command {
+	return NewCommand("git", "clone", "-b", branch, origin, outputDir)
 }
 
-func newCommandGitDescribe() *command {
-	return newCommand("git", "describe", "--tags", "--abbrev=8", "--always", "--long")
+func NewCommandGitDescribe() *Command {
+	return NewCommand("git", "describe", "--tags", "--abbrev=8", "--always", "--long")
 }
 
-func newCommandGitHash() *command {
-	return newCommand("git", "rev-parse", "HEAD")
+func NewCommandGitHash() *Command {
+	return NewCommand("git", "rev-parse", "HEAD")
 }
 
-func newCommandGitOrigin() *command {
-	return newCommand("git", "config", "--get", "remote.origin.url")
+func NewCommandGitOrigin() *Command {
+	return NewCommand("git", "config", "--get", "remote.origin.url")
 }
 
-func newCommandGitStatus() *command {
-	return newCommand("git", "status", "--porcelain")
+func NewCommandGitStatus() *Command {
+	return NewCommand("git", "status", "--porcelain")
 }
 
-func newCommandGoFmt(file ...string) *command {
-	return newCommand("go", append([]string{"fmt"}, file...)...)
+func NewCommandGoFmt(file ...string) *Command {
+	return NewCommand("go", append([]string{"fmt"}, file...)...)
 }
 
-func newCommandGoList() *command {
-	return newCommand("go", "list")
+func NewCommandGoList() *Command {
+	return NewCommand("go", "list")
 }
 
-func newCommandGoListDeps() *command {
-	rv := newCommand("go", "list", "-f", "{{.Deps}}")
-	rv.outputProcessor = func(output string) string {
+func NewCommandGoListDeps() *Command {
+	rv := NewCommand("go", "list", "-f", "{{.Deps}}")
+	rv.OutputProcessor = func(output string) string {
 		return strings.Replace(strings.Replace(output, "[", "", 1), "]", "", 1)
 	}
 	return rv
 }
 
-func newCommand(bin string, args ...string) *command {
-	rv := &command{bin: bin, args: []string{}, exitCode: -1}
+func NewCommand(bin string, args ...string) *Command {
+	rv := &Command{Bin: bin, Args: []string{}, ExitCode: -1}
 	for _, v := range args {
-		rv.args = append(rv.args, v)
+		rv.Args = append(rv.Args, v)
 	}
 	return rv
 }
 
-func (cmd *command) String() string {
+func (cmd *Command) String() string {
 	if cmd == nil {
 		return ""
 	}
-	return strings.Join(append([]string{cmd.bin}, cmd.args...), " ")
+	return strings.Join(append([]string{cmd.Bin}, cmd.Args...), " ")
 }
 
-func (cmd *command) exec(chdir string) error {
+func (cmd *Command) Exec(chdir string) error {
 	if cmd == nil {
 		return errors.New("nil receiver")
 	}
 	// Exit code and standard output.
-	cmd.output = ""
-	cmd.exitCode = -1
+	cmd.Output = ""
+	cmd.ExitCode = -1
 	// Catch errors
 	var err error
 	// Done channel tells us when command is done.
 	done := make(chan error, 1)
 	// Create command.
-	runme := exec.Command(cmd.bin, cmd.args...)
+	runme := exec.Command(cmd.Bin, cmd.Args...)
 	// Standard output handler
 	stdoutRet := make(chan bool, 1)
 	defer func() {
@@ -99,9 +99,9 @@ func (cmd *command) exec(chdir string) error {
 		select {
 		case <-stdoutRet:
 		}
-		cmd.output = strings.TrimSpace(cmd.output)
-		if cmd.outputProcessor != nil {
-			cmd.output = cmd.outputProcessor(cmd.output)
+		cmd.Output = strings.TrimSpace(cmd.Output)
+		if cmd.OutputProcessor != nil {
+			cmd.Output = cmd.OutputProcessor(cmd.Output)
 		}
 	}()
 	stdoutDone := make(chan bool, 1)
@@ -120,7 +120,7 @@ func (cmd *command) exec(chdir string) error {
 				dat := make([]byte, 256)
 				nn, _ := stdoutRdr.Read(dat)
 				if nn > 0 {
-					cmd.output = cmd.output + string(bytes.TrimRight(dat, "\x00"))
+					cmd.Output = cmd.Output + string(bytes.TrimRight(dat, "\x00"))
 				}
 			}
 		}
@@ -151,11 +151,11 @@ func (cmd *command) exec(chdir string) error {
 	}()
 	select {
 	case err = <-done:
-		cmd.exitCode = 0
+		cmd.ExitCode = 0
 		if err != nil {
 			if exiterr, ok := err.(*exec.ExitError); ok {
 				if status, ok := exiterr.Sys().(syscall.WaitStatus); ok {
-					cmd.exitCode = status.ExitStatus()
+					cmd.ExitCode = status.ExitStatus()
 					err = nil
 				}
 			}
@@ -164,8 +164,8 @@ func (cmd *command) exec(chdir string) error {
 	if err != nil {
 		return err
 	}
-	if cmd.exitCode != 0 {
-		return errors.New(fmt.Sprintf("%v returns %v", cmd.String(), cmd.exitCode))
+	if cmd.ExitCode != 0 {
+		return errors.New(fmt.Sprintf("%v returns %v", cmd.String(), cmd.ExitCode))
 	}
 
 	return nil

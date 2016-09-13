@@ -1,7 +1,6 @@
 package gogetvers
 
 import (
-	fs "broadlux/fileSystem"
 	"errors"
 	"fmt"
 	"path/filepath"
@@ -22,17 +21,17 @@ type Git struct {
 // Starts at path and works upwards looking for .git directory.
 // Stops when it reaches stopDir and returns an error.
 func findGitDir(path, stopDir string) (string, error) {
-	if path == "" || !fs.IsDir(path) {
+	if path == "" || !IsDir(path) {
 		return "", errors.New(fmt.Sprintf("Not a path @ %v", path))
 	}
-	if stopDir == "" || !fs.IsDir(stopDir) {
+	if stopDir == "" || !IsDir(stopDir) {
 		return "", errors.New(fmt.Sprintf("Not a path @ %v", stopDir))
 	}
 	if stopDir == path {
 		return "", errors.New(fmt.Sprintf("Search for git reached stopDir"))
 	}
 	try := filepath.Join(path, ".git")
-	if fs.IsDir(try) {
+	if IsDir(try) {
 		abs, err := filepath.Abs(try)
 		if err != nil {
 			return "", err
@@ -55,10 +54,10 @@ func newGitByFind(path, stopDir string) (*Git, error) {
 
 // Returns a new Git structure for the given path.
 func NewGit(path string) (rv *Git, rverr error) {
-	if !fs.IsDir(path) {
+	if !IsDir(path) {
 		return nil, errors.New(fmt.Sprintf("not a path @ %v", path))
 	}
-	if !fs.IsDir(filepath.Join(path, ".git")) {
+	if !IsDir(filepath.Join(path, ".git")) {
 		return nil, errors.New(fmt.Sprintf("path is not a git @ %v", path))
 	}
 	//
@@ -112,18 +111,18 @@ func (g *Git) Clone(mkdirs bool) error {
 		return errors.New("nil receiver")
 	}
 	var err error
-	parentDir := fs.Dir(g.HomeDir)
-	if !fs.IsDir(parentDir) && mkdirs {
-		err = fs.Mkdir(parentDir, 0770)
+	parentDir := Dir(g.HomeDir)
+	if !IsDir(parentDir) && mkdirs {
+		err = Mkdir(parentDir, 0770)
 		if err != nil {
 			return err
 		}
 	}
-	if !fs.IsDir(parentDir) {
+	if !IsDir(parentDir) {
 		err = errors.New(fmt.Sprintf("Not a dir @ %v", parentDir))
 		return err
 	}
-	cmd := newCommandGitClone("master", g.OriginUrl, fs.Basename(g.HomeDir))
+	cmd := newCommandGitClone("master", g.OriginUrl, Basename(g.HomeDir))
 	err = cmd.exec(parentDir)
 	if err != nil {
 		return err
@@ -137,7 +136,7 @@ func (g *Git) Checkout() error {
 		return errors.New("nil receiver")
 	}
 	var err error
-	if !fs.IsDir(g.HomeDir) {
+	if !IsDir(g.HomeDir) {
 		err = errors.New(fmt.Sprintf("Not a dir @ %v", g.HomeDir))
 		return err
 	}

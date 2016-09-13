@@ -1,7 +1,6 @@
 package main
 
 import (
-	fs "broadlux/fileSystem"
 	"errors"
 	"fmt"
 	gv "gogetvers"
@@ -85,13 +84,13 @@ func main() {
 		if sub == "checkout" && !parsedPath {
 			// TODO USE GOPATH
 		}
-		if !fs.IsDir(path) {
+		if !gv.IsDir(path) {
 			fmt.Println(fmt.Sprintf("Error: PATH is not a directory: %v", path))
 			exitCode = 1
 			return
 		}
 		if sub != "make" && sub != "print" {
-			if file != "" && !fs.IsFile(file) {
+			if file != "" && !gv.IsFile(file) {
 				fmt.Println(fmt.Sprintf("Error: FILE is not a file: %v", file))
 				exitCode = 1
 				return
@@ -177,7 +176,7 @@ gogetvers make [-f FILE] [PATH]
 gogetvers rebuild -f MANIFEST [PATH]
     Rebuild package structure described by MANIFEST at PATH;
     or in current directory if PATH is omitted.  If any of
-    the dependencies described by MANIFEST already exists on
+    the dependencies described by MANIFEST already exist on
     the file system then no work is performed.
 
 gogetvers checkout -f MANIFEST [PATH]

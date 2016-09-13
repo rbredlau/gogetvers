@@ -1,7 +1,6 @@
 package gogetvers
 
 import (
-	fs "broadlux/fileSystem"
 	"strings"
 )
 
@@ -34,7 +33,7 @@ type untrackedDependency struct {
 
 func getDependency(dependencyDir, rootDir string) (dependency, error) {
 	name := strings.Replace(dependencyDir, rootDir, "", 1)
-	if !fs.IsDir(dependencyDir) {
+	if !IsDir(dependencyDir) {
 		// Must be a golang built in
 		return &builtinDependency{Name: name, dependencyComposite: dependencyComposite{}}, nil
 	}

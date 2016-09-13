@@ -1,7 +1,6 @@
 package gogetvers
 
 import (
-	fs "broadlux/fileSystem"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -46,7 +45,7 @@ func (p *PackageInfo) setPathsComposite() {
 
 // Opens the input file and decodes the manifest.
 func loadPackageInfoFile(inputFile string) (*PackageInfo, error) {
-	if !fs.IsFile(inputFile) {
+	if !IsFile(inputFile) {
 		return nil, errors.New(fmt.Sprintf("Not a file @ %v", inputFile))
 	}
 	fr, err := os.Open(inputFile)
@@ -201,7 +200,7 @@ func (p *PackageInfo) getGitsDiskStatus() (exist GitList, dne GitList) {
 	}
 	//
 	for _, v := range p.getGits() {
-		if fs.IsDir(v.HomeDir) {
+		if IsDir(v.HomeDir) {
 			yeslist = append(yeslist, v)
 		} else {
 			nolist = append(nolist, v)

@@ -1,7 +1,6 @@
 package gogetvers
 
 import (
-	fs "broadlux/fileSystem"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -47,7 +46,7 @@ func (g *GoGetVers) Const(outputFile, packageName string) error {
 	g.status.Writeln("Load manifest successful.")
 	//
 	if packageName == "" {
-		packageName = fs.Basename(g.packageInfo.PackageDir)
+		packageName = Basename(g.packageInfo.PackageDir)
 	}
 	template := strings.Replace(version_template, "$PACKAGE_NAME", packageName, -1)
 	template = strings.Replace(template, "$VARNAME", "VersionInfo", -1)
@@ -77,8 +76,8 @@ func (g *GoGetVers) Const(outputFile, packageName string) error {
 		return err
 	}
 	//
-	cmd := newCommandGoFmt(fs.Basename(outputFile))
-	err = cmd.exec(fs.Dir(outputFile))
+	cmd := newCommandGoFmt(Basename(outputFile))
+	err = cmd.exec(Dir(outputFile))
 	if err != nil {
 		g.status.Error(err)
 		return err
@@ -102,7 +101,7 @@ func (g *GoGetVers) Checkout() error {
 	}
 	g.status.Writeln("Load manifest successful.")
 	//
-	if !fs.IsDir(g.path) {
+	if !IsDir(g.path) {
 		return errors.New(fmt.Sprintf("not a path @ %v", g.path))
 	}
 	g.packageInfo.SetPathPrefix(g.path)
@@ -148,7 +147,7 @@ func (g *GoGetVers) Rebuild() error {
 	}
 	g.status.Writeln("Load manifest successful.")
 	//
-	if !fs.IsDir(g.path) {
+	if !IsDir(g.path) {
 		return errors.New(fmt.Sprintf("not a path @ %v", g.path))
 	}
 	g.packageInfo.SetPathPrefix(g.path)

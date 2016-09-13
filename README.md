@@ -86,6 +86,15 @@ $ gogetvers make
 ```
 $ gogetvers make $GOPATH/src/myproject
 ```
+*or*
+```
+$ cd $GOPATH/src/myproject
+$ gogetvers make -f ~/current.manifest 
+```
+*or*
+```
+$ gogetvers make -f ~/current.manifest $GOPATH/src/myproject
+```
 
 ###gogetvers print
 Prints a summary of the manifest file.

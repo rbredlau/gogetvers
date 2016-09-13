@@ -1,6 +1,4 @@
 *.swp
-bin
-bin.exe
 gogetvers
 gogetvers.exe
 foo

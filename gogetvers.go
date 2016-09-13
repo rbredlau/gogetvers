@@ -11,10 +11,10 @@ import (
 )
 
 type GoGetVers struct {
-	path        string        // Working path of gogetvers.
-	file        string        // Path of package info file.
-	packageInfo *PackageInfo  // The package info
-	status      *StatusWriter // The status writer.
+	Path        string        // Working.Path of gogetvers.
+	File        string        // Path of package info file.
+	PackageInfo *PackageInfo  // The package info
+	Status      *StatusWriter // The status writer.
 }
 
 func NewGoGetVers(path, file string, statusWriter io.Writer) (*GoGetVers, error) {
@@ -22,9 +22,9 @@ func NewGoGetVers(path, file string, statusWriter io.Writer) (*GoGetVers, error)
 	if err != nil {
 		return nil, err
 	}
-	rv := &GoGetVers{path: abs, file: file}
+	rv := &GoGetVers{Path: abs, File: file}
 	if statusWriter != nil {
-		rv.status = &StatusWriter{Writer: statusWriter}
+		rv.Status = &StatusWriter{Writer: statusWriter}
 	}
 	return rv, nil
 }
@@ -34,26 +34,26 @@ func (g *GoGetVers) Const(outputFile, packageName string) error {
 	if g == nil {
 		return errors.New("nil receiver")
 	}
-	g.status.Printf("Creating constant file from manifest @ %v\n", g.file)
-	g.status.Printf("Output location @ %v\n", g.path)
+	g.Status.Printf("Creating constant file from manifest @ %v\n", g.File)
+	g.Status.Printf("Output location @ %v\n", g.Path)
 	//
 	var err error
-	g.packageInfo, err = LoadPackageInfoFile(g.file)
+	g.PackageInfo, err = LoadPackageInfoFile(g.File)
 	if err != nil {
-		g.status.Error(err)
+		g.Status.Error(err)
 		return err
 	}
-	g.status.Writeln("Load manifest successful.")
+	g.Status.Writeln("Load manifest successful.")
 	//
 	if packageName == "" {
-		packageName = filepath.Base(g.packageInfo.PackageDir)
+		packageName = filepath.Base(g.PackageInfo.PackageDir)
 	}
 	template := strings.Replace(version_template, "$PACKAGE_NAME", packageName, -1)
 	template = strings.Replace(template, "$VARNAME", "VersionInfo", -1)
 	template = strings.Replace(template, "$TYPE_NAME", "VersionInfoType", -1)
-	template = strings.Replace(template, "$VERSION", fmt.Sprintf("\"%v\"", g.packageInfo.Git.Describe), -1)
+	template = strings.Replace(template, "$VERSION", fmt.Sprintf("\"%v\"", g.PackageInfo.Git.Describe), -1)
 	deps := []string{}
-	for _, git := range g.packageInfo.getGits() {
+	for _, git := range g.PackageInfo.getGits() {
 		deps = append(deps, fmt.Sprintf("{\"%v\",\"%v\"}", git.HomeDir, git.Describe))
 	}
 	depsString := fmt.Sprintf("{%v}", strings.Join(deps, ",\n"))
@@ -61,25 +61,25 @@ func (g *GoGetVers) Const(outputFile, packageName string) error {
 	//
 	fw, err := os.Create(outputFile)
 	if err != nil {
-		g.status.Error(err)
+		g.Status.Error(err)
 		return err
 	}
 	defer fw.Close()
 	wrote, err := fw.WriteString(template)
 	if err != nil {
-		g.status.Error(err)
+		g.Status.Error(err)
 		return err
 	}
 	if wrote != len(template) {
 		err = errors.New(fmt.Sprintf("partial file write @ %v", outputFile))
-		g.status.Error(err)
+		g.Status.Error(err)
 		return err
 	}
 	//
 	cmd := NewCommandGoFmt(filepath.Base(outputFile))
 	err = cmd.Exec(filepath.Dir(outputFile))
 	if err != nil {
-		g.status.Error(err)
+		g.Status.Error(err)
 		return err
 	}
 	//
@@ -90,41 +90,41 @@ func (g *GoGetVers) Checkout() error {
 	if g == nil {
 		return errors.New("nil receiver")
 	}
-	g.status.Printf("Attempting to checkout manifest @ %v\n", g.file)
-	g.status.Printf("Output location @ %v\n", g.path)
+	g.Status.Printf("Attempting to checkout manifest @ %v\n", g.File)
+	g.Status.Printf("Output location @ %v\n", g.Path)
 	//
 	var err error
-	g.packageInfo, err = LoadPackageInfoFile(g.file)
+	g.PackageInfo, err = LoadPackageInfoFile(g.File)
 	if err != nil {
-		g.status.Error(err)
+		g.Status.Error(err)
 		return err
 	}
-	g.status.Writeln("Load manifest successful.")
+	g.Status.Writeln("Load manifest successful.")
 	//
-	if !IsDir(g.path) {
-		return errors.New(fmt.Sprintf("not a path @ %v", g.path))
+	if !IsDir(g.Path) {
+		return errors.New(fmt.Sprintf("not a path @ %v", g.Path))
 	}
-	g.packageInfo.SetPathPrefix(g.path)
-	// none of g.packageInfo.gits can have local modifications
-	mods, nomods, dne, err := g.packageInfo.getGitsLocalModsStatus()
+	g.PackageInfo.SetPathPrefix(g.Path)
+	// none of g.PackageInfo.gits can have local modifications
+	mods, nomods, dne, err := g.PackageInfo.getGitsLocalModsStatus()
 	if err != nil {
-		g.status.Error(err)
+		g.Status.Error(err)
 		return err
 	}
 	if mods.Len() > 0 {
-		g.packageInfo.StripPathPrefix(g.path)
+		g.PackageInfo.StripPathPrefix(g.Path)
 		err = errors.New(fmt.Sprintf("The following gits have local modifications: %v", strings.Join(mods.Names(), ", ")))
-		g.status.Error(err)
+		g.Status.Error(err)
 		return err
 	}
 	// Checkout gits with nomods
 	for _, git := range nomods {
-		g.status.Printf("checkout %v\n", git.HomeDir)
+		g.Status.Printf("checkout %v\n", git.HomeDir)
 		git.Checkout()
 	}
 	// Clone non-existing gis
 	for _, git := range dne {
-		g.status.Printf("cloning %v\n", git.HomeDir)
+		g.Status.Printf("cloning %v\n", git.HomeDir)
 		git.Clone(true)
 		git.Checkout()
 	}
@@ -136,32 +136,32 @@ func (g *GoGetVers) Rebuild() error {
 	if g == nil {
 		return errors.New("nil receiver")
 	}
-	g.status.Printf("Attempting to rebuild manifest @ %v\n", g.file)
-	g.status.Printf("Output location @ %v\n", g.path)
+	g.Status.Printf("Attempting to rebuild manifest @ %v\n", g.File)
+	g.Status.Printf("Output location @ %v\n", g.Path)
 	//
 	var err error
-	g.packageInfo, err = LoadPackageInfoFile(g.file)
+	g.PackageInfo, err = LoadPackageInfoFile(g.File)
 	if err != nil {
-		g.status.Error(err)
+		g.Status.Error(err)
 		return err
 	}
-	g.status.Writeln("Load manifest successful.")
+	g.Status.Writeln("Load manifest successful.")
 	//
-	if !IsDir(g.path) {
-		return errors.New(fmt.Sprintf("not a path @ %v", g.path))
+	if !IsDir(g.Path) {
+		return errors.New(fmt.Sprintf("not a path @ %v", g.Path))
 	}
-	g.packageInfo.SetPathPrefix(g.path)
+	g.PackageInfo.SetPathPrefix(g.Path)
 	// Rebuild requires that all gits do not exist.
-	exist, dne := g.packageInfo.getGitsDiskStatus()
+	exist, dne := g.PackageInfo.getGitsDiskStatus()
 	if exist.Len() > 0 {
-		g.packageInfo.StripPathPrefix(g.path)
+		g.PackageInfo.StripPathPrefix(g.Path)
 		err = errors.New(fmt.Sprintf("The following gits already exist on disk: %v", strings.Join(exist.Names(), ", ")))
-		g.status.Error(err)
+		g.Status.Error(err)
 		return err
 	}
 	// Clone gits that do not exist.
 	for _, git := range dne {
-		g.status.Printf("cloning %v\n", git.HomeDir)
+		g.Status.Printf("cloning %v\n", git.HomeDir)
 		git.Clone(true)
 		git.Checkout()
 	}
@@ -174,33 +174,33 @@ func (g *GoGetVers) Make() error {
 		return errors.New("nil receiver")
 	}
 	var err error
-	g.packageInfo, err = getPackageInfo(g.path, g.status)
+	g.PackageInfo, err = getPackageInfo(g.Path, g.Status)
 	if err != nil {
-		g.status.Error(err)
+		g.Status.Error(err)
 		return err
 	}
 	//
-	g.packageInfo.StripPathPrefix(g.packageInfo.RootDir)
-	g.status.Writeln(g.packageInfo.getSummary())
+	g.PackageInfo.StripPathPrefix(g.PackageInfo.RootDir)
+	g.Status.Writeln(g.PackageInfo.getSummary())
 	//
-	g.status.Printf("Writing output to %v\n", g.file)
-	g.status.Indent()
-	fw, err := os.Create(g.file)
+	g.Status.Printf("Writing output to %v\n", g.File)
+	g.Status.Indent()
+	fw, err := os.Create(g.File)
 	if err != nil {
-		g.status.Error(err)
+		g.Status.Error(err)
 		return err
 	}
 	defer fw.Close()
 	//
 	enc := json.NewEncoder(fw)
-	err = enc.Encode(g.packageInfo)
+	err = enc.Encode(g.PackageInfo)
 	if err != nil {
-		g.status.Error(err)
+		g.Status.Error(err)
 		return err
 	}
-	g.status.Writeln("done")
-	g.status.Outdent()
-	g.status.Writeln("")
+	g.Status.Writeln("done")
+	g.Status.Outdent()
+	g.Status.Writeln("")
 	//
 	return nil
 }
@@ -210,11 +210,11 @@ func (g *GoGetVers) Print() error {
 		return errors.New("nil receiver")
 	}
 	var err error
-	g.packageInfo, err = LoadPackageInfoFile(g.file)
+	g.PackageInfo, err = LoadPackageInfoFile(g.File)
 	if err != nil {
-		g.status.Error(err)
+		g.Status.Error(err)
 		return err
 	}
-	g.status.Writeln(g.packageInfo.getSummary())
+	g.Status.Writeln(g.PackageInfo.getSummary())
 	return nil
 }

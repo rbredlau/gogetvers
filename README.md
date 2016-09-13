@@ -69,3 +69,8 @@ gogetvers const -f MANIFEST [-g GOFILE] [-n PACKAGENAME] [PATH]
     MANIFEST; use this option to specify another name (i.e. for
     'main').
 ```
+
+#@TODO
++ Implement `gogetvers tag`
++ `gogetvers make` should issue warnings if any package has local modifications.
+

@@ -81,7 +81,9 @@ Makes the manifest file.
 # Make manifest for myproject
 $ cd $GOPATH/src/myproject
 $ gogetvers make
-# or
+```
+*or*
+```
 $ gogetvers make $GOPATH/src/myproject
 ```
 
@@ -91,9 +93,13 @@ Prints a summary of the manifest file.
 # Print existing manifest in current directory.
 $ cd $GOPATH/src/myproject
 $ gogetvers print
-# or
+```
+*or*
+```
 $ gogetvers print $GOPATH/src/myproject
-# or
+```
+*or*
+```
 $ gogetvers print -f $GOPATH/src/myproject/gogetvers.manifest
 ```
 
@@ -103,7 +109,9 @@ of the repositories in the manifest can exist in the destination path.
 ```
 $ mkdir foo
 $ gogetvers rebuild -f $GOPATH/src/myproject/gogetvers.manifest foo
-# or
+```
+*or*
+```
 $ mkdir bar
 $ cd bar
 $ gogetvers rebuild -f $GOPATH/src/myproject/gogetvers.manifest

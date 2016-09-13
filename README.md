@@ -139,7 +139,7 @@ $ # Dependencies of myproject under $GOPATH will have be reverted to the
 $ # hashes described in ./gogetvers.manifest
 ```
 
-##This looks great but there's a HUGE problem...
+###This looks great but there's a HUGE problem...
 gogetvers doesn't make a *deep copy* of dependencies.  If the git repositories
 move or disappear then gogetvers can't `rebuild` or `checkout` old versions.  (*You
 can always edit the manifest by hand to point at new locations if necessary though.*)

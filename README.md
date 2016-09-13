@@ -1,11 +1,11 @@
-#gogitvers
+##gogitvers
 Yet another package versioning tool for golang.
 
-#What does it do?
+##What does it do?
 gogitvers can embed git version information into your project and also
 tracks version information of your project's dependencies.
 
-#These tools already exist; why is this one so special?
+##These tools already exist; why is this one so special?
 It avoids all the nonsense with *vendor*, doesn't mangle import names
 inside your existing project, doesn't otherwise copy dependencies
 into your project, and uses the standard golang tools to do its job.
@@ -15,21 +15,21 @@ I consider this approach to be more *pure* in terms of golang's initial design c
 * The existing golang tools (i.e. `go generate`) are used instead of introducing
 makefiles or similar depedencies.
 
-#How does it work?
+##How does it work?
 gogetvers analyzes a golang package and its dependencies and generates a 
 JSON formatted manifest file.  This manifest file can be used to embed
 version information into your project and also to revert your project
 and all its dependencies to prior states.
 
-#Why is it two packages instead of one?
+##Why is it two packages instead of one?
 * gogetvers contains the code to do the heavy lifting.
 * cmd contains the code to build a binary program.
   * `cd gogetvers/cmd` and `go build -o gogetvers` to create a binary named *gogetvers*
 
-#### Documentation
+## Documentation
 [![](https://img.shields.io/badge/godoc-reference-blue.svg)](https://godoc.org/github.com/rbredlau/gogitvers)
 
-#man gogetvers
+##man gogetvers
 ```
 gogetvers -v|--version
     Print version information.
@@ -73,9 +73,9 @@ gogetvers const -f MANIFEST [-g GOFILE] [-n PACKAGENAME] [PATH]
     'main').
 ```
 
-#Examples
+##Examples
 
-##gogetvers make
+###gogetvers make
 Makes the manifest file.
 ```
 # Make manifest for myproject
@@ -85,7 +85,7 @@ $ gogetvers make
 $ gogetvers make $GOPATH/src/myproject
 ```
 
-##gogetvers print
+###gogetvers print
 Prints a summary of the manifest file.
 ```
 # Print existing manifest in current directory.
@@ -97,7 +97,7 @@ $ gogetvers print $GOPATH/src/myproject
 $ gogetvers print -f $GOPATH/src/myproject/gogetvers.manifest
 ```
 
-##gogetvers rebuild
+###gogetvers rebuild
 Clones the repositories from the manifest into a given path; none
 of the repositories in the manifest can exist in the destination path.
 ```
@@ -109,7 +109,7 @@ $ cd bar
 $ gogetvers rebuild -f $GOPATH/src/myproject/gogetvers.manifest
 ```
 
-##gogetvers checkout
+###gogetvers checkout
 The same as rebuild except the repositories from the manifest CAN exist on disk;
 they will be checked out with the hash described in the manifest or cloned if
 it doesn't exist on disk.  `checkout` can only be used if existing repositories
@@ -122,7 +122,7 @@ $ # Dependencies of myproject under $GOPATH will have be reverted to the
 $ # hashes described in ./gogetvers.manifest
 ```
 
-#@TODO
+##@TODO
 + Implement `gogetvers tag`
 + `gogetvers make` should issue warnings if any package has local modifications.
 

@@ -22,4 +22,7 @@ version information into your project and also to revert your project
 and all its dependencies to prior states.
 
 #Why is it two packages instead of one?
+* gogetvers contains the code to do the heavy lifting.
+* cmd contains the code to build a binary program.
+  * `cd cmd` and `go build -o gogetvers` to create a binary named *gogetvers*
 

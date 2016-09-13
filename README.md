@@ -26,6 +26,9 @@ and all its dependencies to prior states.
 * cmd contains the code to build a binary program.
   * `cd gogetvers/cmd` and `go build -o gogetvers` to create a binary named *gogetvers*
 
+#### Documentation
+[![](https://img.shields.io/badge/godoc-reference-blue.svg)](https://godoc.org/github.com/rbredlau/gogitvers)
+
 #man gogetvers
 ```
 gogetvers -v|--version

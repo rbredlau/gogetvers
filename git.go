@@ -7,6 +7,7 @@ import (
 	"strings"
 )
 
+// Describes a git repository.
 type Git struct {
 	HomeDir   string
 	Branch    string
@@ -18,7 +19,7 @@ type Git struct {
 	*PathsComposite
 }
 
-// Starts at path and works upwards looking for .git directory.
+// FindGitDir starts at path and works upwards looking for .git directory.
 // Stops when it reaches stopDir and returns an error.
 func FindGitDir(path, stopDir string) (string, error) {
 	if path == "" || !IsDir(path) {
@@ -41,7 +42,7 @@ func FindGitDir(path, stopDir string) (string, error) {
 	return FindGitDir(filepath.Dir(path), stopDir)
 }
 
-// Start at path and look upwards for a .git directory, stopping
+// NewGitByFind starts at path and look upwards for a .git directory, stopping
 // if stopDir is reached.  Return a git type from the found
 // .git directory.
 func NewGitByFind(path, stopDir string) (*Git, error) {

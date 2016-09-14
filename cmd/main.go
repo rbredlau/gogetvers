@@ -128,6 +128,21 @@ func main() {
 			exitCode = 1
 			return
 		}
+		// Generate defaults for -g and -n for 'generate', 'release', and 'tag'
+		if sub == "generate" || sub == "release" || sub == "tag" {
+			if opts.dashg == "" {
+				opts.dashg = filepath.Join(goget.Path, "generated_gogetvers.go")
+			}
+			if opts.dashn == "" {
+				// Obtain automatically
+				cmd := gv.NewCommand("go", "list", "-f", "{{.Name}}")
+				err := cmd.Exec(goget.Path)
+				if err == nil {
+					opts.dashn = cmd.Output
+				}
+			}
+		}
+		// Do the work.
 		switch sub {
 		case "checkout":
 			err = docheckout()
@@ -142,7 +157,7 @@ func main() {
 		case "release":
 			err = dorelease(opts.dashg, opts.dashn, opts.dasht, opts.dashm)
 		case "tag":
-			err = dotag(opts.dasht)
+			err = dotag(opts.dashg, opts.dashn, opts.dasht)
 		default:
 			err = errors.New("no sub command")
 		}
@@ -173,31 +188,17 @@ func dorebuild() error {
 }
 
 func dorelease(gofile, packageName, tag, message string) error {
-	if gofile == "" {
-		gofile = filepath.Join(goget.Path, "generated_gogetvers.go")
-	}
 	if message == "" {
 		message = tag + " by gogetvers"
 	}
 	return goget.Release(gofile, packageName, tag, message)
 }
 
-func dotag(tag string) error {
-	return goget.Tag(tag)
+func dotag(gofile, packageName, tag string) error {
+	return goget.Tag(gofile, packageName, tag)
 }
 
 func dogenerate(gofile, packageName string) error {
-	if gofile == "" {
-		gofile = filepath.Join(goget.Path, "generated_gogetvers.go")
-	}
-	if packageName == "" {
-		// Obtain automatically
-		cmd := gv.NewCommand("go", "list", "-f", "{{.Name}}")
-		err := cmd.Exec(goget.Path)
-		if err == nil {
-			packageName = cmd.Output
-		}
-	}
 	return goget.Generate(gofile, packageName)
 }
 
@@ -273,7 +274,7 @@ gogetvers release [-g GOFILE] [-n PACKAGENAME] [-m MESSAGE] -t TAG [PATH]
     do not have local modifications.  This is a convenience
     command to make a release version of a package.
 
-gogetvers tag -t TAG [PATH]
+gogetvers tag [-g GOFILE] [-n PACKAGENAME] -t TAG [PATH]
     Tag is similar to 'release' except the tag is not annotated and
     the check for local modifications is not performed.  This command
 	is suitable for tagging development or feature branches.  The
@@ -281,7 +282,7 @@ gogetvers tag -t TAG [PATH]
       + git tag -d TAG
       + git tag TAG
       + gogetvers make PATH
-
+      + gogetvers generate -g GOFILE -n PACKAGENAME PATH
 `
 	fmt.Printf(usage)
 }

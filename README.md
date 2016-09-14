@@ -93,7 +93,7 @@ gogetvers release [-g GOFILE] [-n PACKAGENAME] [-m MESSAGE] -t TAG [PATH]
     do not have local modifications.  This is a convenience
     command to make a release version of a package.
 
-gogetvers tag -t TAG [PATH]
+gogetvers tag [-g GOFILE] [-n PACKAGENAME] -t TAG [PATH]
     Tag is similar to 'release' except the tag is not annotated and
     the check for local modifications is not performed.  This command
 	is suitable for tagging development or feature branches.  The
@@ -101,6 +101,7 @@ gogetvers tag -t TAG [PATH]
       + git tag -d TAG
       + git tag TAG
       + gogetvers make PATH
+      + gogetvers generate -g GOFILE -n PACKAGENAME PATH
 ```
 
 ##Examples

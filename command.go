@@ -48,6 +48,22 @@ func NewCommandGitStatus() *Command {
 	return NewCommand("git", "status", "--porcelain")
 }
 
+func NewCommandGitTag(tag string) *Command {
+	return NewCommand("git", "tag", tag)
+}
+
+func NewCommandGitTagAnnotated(tag, message string) *Command {
+	return NewCommand("git", "tag", "-m", message, "-a", tag)
+}
+
+func NewCommandGitTagPush(tag, where string) *Command {
+	return NewCommand("git", "push", where, tag)
+}
+
+func NewCommandGitTagDelete(tag string) *Command {
+	return NewCommand("git", "tag", "-d", tag)
+}
+
 func NewCommandGoFmt(file ...string) *Command {
 	return NewCommand("go", append([]string{"fmt"}, file...)...)
 }

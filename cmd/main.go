@@ -108,16 +108,20 @@ func main() {
 			exitCode = 1
 			return
 		}
-		// Only 'make' and 'print' commands have a default file name, for
-		// any other commands where -f was provided ensure the file exists.
-		if sub != "make" && sub != "print" {
+		//
+		if sub == "make" || sub == "print" || sub == "tag" || sub == "release" {
+			// If file nto provided for the above commands then use gogetvers.manifest within
+			// PATH.
+			if opts.file == "" {
+				opts.file = filepath.Join(opts.path, "gogetvers.manifest")
+			}
+		} else {
+			// For any other commands, if file was provided then it must also exist.
 			if opts.file != "" && !gv.IsFile(opts.file) {
 				fmt.Println(fmt.Sprintf("Error: FILE is not a file: %v", opts.file))
 				exitCode = 1
 				return
 			}
-		} else if (sub == "make" || sub == "print") && opts.file == "" {
-			opts.file = filepath.Join(opts.path, "gogetvers.manifest")
 		}
 		// Create our GGV object.
 		goget, err = gv.NewGoGetVers(opts.path, opts.file, os.Stdout)
@@ -138,7 +142,7 @@ func main() {
 		case "rebuild":
 			err = dorebuild()
 		case "release":
-			err = dorelease(opts.dasht, opts.dashm)
+			err = dorelease(opts.dashg, opts.dashn, opts.dasht, opts.dashm)
 		case "tag":
 			err = dotag(opts.dasht)
 		default:
@@ -170,8 +174,14 @@ func dorebuild() error {
 	return goget.Rebuild()
 }
 
-func dorelease(tag, message string) error {
-	return goget.Release(tag, message)
+func dorelease(gofile, packageName, tag, message string) error {
+	if gofile == "" {
+		gofile = "generated_gogetvers.go"
+	}
+	if message == "" {
+		message = tag + " by gogetvers"
+	}
+	return goget.Release(gofile, packageName, tag, message)
 }
 
 func dotag(tag string) error {
@@ -236,12 +246,13 @@ gogetvers rebuild -f MANIFEST [PATH]
     the dependencies described by MANIFEST already exist on
     the file system then no work is performed.
 
-gogetvers release [-m MESSAGE] -t TAG [PATH]
+gogetvers release [-g GOFILE] [-n PACKAGENAME] [-m MESSAGE] -t TAG [PATH]
     Creates an annotated tag for a project.  The following
     commands are performed:
       + git tag -a TAG [-m MESSAGE]
       + git push origin TAG
       + gogetvers make PATH
+      + gogetvers const -g GOFILE -n PACKAGENAME PATH
       + git add . && git commit [-m MESSAGE]
     If omitted PATH will be the current directory.  Release
     requires that the project at PATH and all of its dependencies
@@ -255,7 +266,7 @@ gogetvers tag -t TAG [PATH]
     following commands are performed:
       + git tag -d TAG
       + git tag TAG
-	  + gogetvers make PATH
+      + gogetvers make PATH
 
 `
 	fmt.Printf(usage)

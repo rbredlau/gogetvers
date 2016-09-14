@@ -169,7 +169,7 @@ func (g *GoGetVers) Rebuild() error {
 	return nil
 }
 
-func (g *GoGetVers) Release(tag, message string) error {
+func (g *GoGetVers) Release(gofile, packageName, tag, message string) error {
 	if g == nil {
 		return errors.New("nil receiver")
 	}
@@ -198,7 +198,49 @@ func (g *GoGetVers) Release(tag, message string) error {
 		return err
 
 	}
-	// TODO FILL IN REST
+	//
+	if message == "" {
+		message = tag
+	}
+	gittag := NewCommandGitTagAnnotated(tag, message)
+	err = gittag.Exec(g.Path)
+	if err != nil {
+		g.Status.Error(err)
+		return err
+	}
+	//
+	gittagpush := NewCommandGitTagPush(tag, "origin")
+	err = gittagpush.Exec(g.Path)
+	if err != nil {
+		g.Status.Error(err)
+		return err
+	}
+	//
+	err = g.Make()
+	if err != nil {
+		g.Status.Error(err)
+		return err
+	}
+	//
+	err = g.Const(gofile, packageName)
+	if err != nil {
+		g.Status.Error(err)
+		return err
+	}
+	//
+	gitadd := NewCommand("git", "add", ".")
+	gitadd.Exec(g.Path)
+	if err != nil {
+		g.Status.Error(err)
+		return err
+	}
+	//
+	gitcommit := NewCommand("git", "commit", "-m", message)
+	gitcommit.Exec(g.Path)
+	if err != nil {
+		g.Status.Error(err)
+		return err
+	}
 	//
 	return nil
 }
@@ -212,7 +254,19 @@ func (g *GoGetVers) Tag(tag string) error {
 		return errors.New("tag is empty")
 	}
 	//
-	return nil
+	var err error
+	//
+	gittagdel := NewCommandGitTagDelete(tag)
+	gittagdel.Exec(g.Path)
+	//
+	gittag := NewCommandGitTag(tag)
+	err = gittag.Exec(g.Path)
+	if err != nil {
+		g.Status.Error(err)
+		return err
+	}
+	//
+	return g.Make()
 }
 
 func (g *GoGetVers) Make() error {

@@ -27,7 +27,7 @@ and all its dependencies to prior states.
   * `cd gogetvers/cmd` and `go build -o gogetvers` to create a binary named *gogetvers*
 
 ## Documentation
-[![](https://img.shields.io/badge/godoc-reference-blue.svg)](https://godoc.org/github.com/rbredlau/gogitvers)
+[![](https://img.shields.io/badge/godoc-reference-blue.svg)](https://godoc.org/github.com/rbredlau/gogetvers)
 
 ##Usage
 ```

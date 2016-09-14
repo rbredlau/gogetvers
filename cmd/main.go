@@ -28,13 +28,6 @@ func main() {
 	defer func() {
 		os.Exit(exitCode)
 	}()
-	// Get current path.
-	opts.path, err = os.Getwd()
-	if err != nil {
-		fmt.Println("Error:", err.Error())
-		exitCode = 1
-		return
-	}
 	// Parse arguments.
 	args := append([]string{}, os.Args[1:]...)
 	if len(args) == 0 {
@@ -54,7 +47,6 @@ func main() {
 	case "checkout", "generate", "make", "print", "rebuild", "release", "tag":
 		sub := args[0]
 		args = args[1:]
-		parsedPath := false
 		// Options parsing...
 		for len(args) > 0 {
 			curr := len(args)
@@ -84,7 +76,6 @@ func main() {
 			if len(args) == 1 {
 				opts.path = args[0]
 				args = args[1:]
-				parsedPath = true
 			}
 			if curr == len(args) {
 				// Nothing done, so remove one to avoid infinite loop
@@ -92,14 +83,24 @@ func main() {
 			}
 		}
 		// End options parsing.
-		//
-		// If command is 'checkout' and PATH wasn't parsed, then use env-GOPATH
-		if sub == "checkout" && !parsedPath {
-			envpath := os.Getenv("GOPATH")
-			if envpath == "" {
-				fmt.Println("Error: GOPATH is not set.")
-				exitCode = 1
-				return
+		// Path wasn't provided
+		if opts.path == "" {
+			if sub == "checkout" {
+				// Checkout uses GOPATH environment variable as default path.
+				envpath := os.Getenv("GOPATH")
+				if envpath == "" {
+					fmt.Println("Error: GOPATH is not set.")
+					exitCode = 1
+					return
+				}
+			} else {
+				// Everything else uses current directory.
+				opts.path, err = os.Getwd()
+				if err != nil {
+					fmt.Println("Error:", err.Error())
+					exitCode = 1
+					return
+				}
 			}
 		}
 		// All commands require a path that exists
@@ -108,16 +109,13 @@ func main() {
 			exitCode = 1
 			return
 		}
-		//
-		if sub == "make" || sub == "print" || sub == "tag" || sub == "release" {
-			// If file nto provided for the above commands then use gogetvers.manifest within
-			// PATH.
-			if opts.file == "" {
-				opts.file = filepath.Join(opts.path, "gogetvers.manifest")
-			}
-		} else {
-			// For any other commands, if file was provided then it must also exist.
-			if opts.file != "" && !gv.IsFile(opts.file) {
+		// If file is not provided then default is "gogetvers.manifest" within PATH
+		if opts.file == "" {
+			opts.file = filepath.Join(opts.path, "gogetvers.manifest")
+		}
+		// The following commands require that FILE exists: checkout, generate, print, rebuild
+		if sub == "checkout" || sub == "generate" || sub == "print" || sub == "rebuild" {
+			if !gv.IsFile(opts.file) {
 				fmt.Println(fmt.Sprintf("Error: FILE is not a file: %v", opts.file))
 				exitCode = 1
 				return
@@ -211,7 +209,16 @@ gogetvers -v|--version
 gogetvers [-h|--help]
     Print help information.
 
-gogetvers checkout -f MANIFEST [PATH]
+For all proceeding commands:
+    + If omitted then PATH defaults to current working directory,
+      except for the checkout command where it defaults to the
+      GOPATH environment variable.
+    + If omitted then -f option defaults to gogetvers.manifest
+      within PATH
+    + If omitted then -g option defaults to generated_gogetvers.go
+      within PATH
+
+gogetvers checkout [-f MANIFEST] [PATH]
     Does the same as the 'rebuild' command with the following
     differences:
         + Uses GOPATH environment variable if PATH is omitted.
@@ -221,13 +228,12 @@ gogetvers checkout -f MANIFEST [PATH]
     If any of the dependencies have local modifications then
     no work is performed.
 
-gogetvers generate -f MANIFEST [-g GOFILE] [-n PACKAGENAME] [PATH]
+gogetvers generate [-f MANIFEST] [-g GOFILE] [-n PACKAGENAME] [PATH]
     Create a go source file with version information at PATH
-    if provided or in current directory otherwise using MANIFEST
-    file.  GOFILE is the output filename or generated_gogetvers.go
-    if omitted.  By default PACKAGENAME will be extracted from
-    MANIFEST; use this option to specify another name (i.e. for
-    'main').
+    using MANIFEST file.  GOFILE is the output filename or 
+    generated_gogetvers.go if omitted.  By default PACKAGENAME will 
+    be extracted from MANIFEST; use this option to specify another 
+    name (i.e. for 'main').
 
 gogetvers make [-f FILE] [PATH]
     Create manifest information for golang package at PATH; or
@@ -240,7 +246,7 @@ gogetvers print [-f MANIFEST] | [PATH]
     defaults to current directory; MANIFEST defaults to
     gogetvers.manifest.
 
-gogetvers rebuild -f MANIFEST [PATH]
+gogetvers rebuild [-f MANIFEST] [PATH]
     Rebuild package structure described by MANIFEST at PATH;
     or in current directory if PATH is omitted.  If any of
     the dependencies described by MANIFEST already exist on

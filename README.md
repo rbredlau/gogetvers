@@ -37,7 +37,16 @@ gogetvers -v|--version
 gogetvers [-h|--help]
     Print help information.
 
-gogetvers checkout -f MANIFEST [PATH]
+For all proceeding commands:
+    + If omitted then PATH defaults to current working directory,
+      except for the checkout command where it defaults to the
+      GOPATH environment variable.
+    + If omitted then -f option defaults to gogetvers.manifest
+      within PATH
+    + If omitted then -g option defaults to generated_gogetvers.go
+      within PATH
+
+gogetvers checkout [-f MANIFEST] [PATH]
     Does the same as the 'rebuild' command with the following
     differences:
         + Uses GOPATH environment variable if PATH is omitted.
@@ -47,13 +56,12 @@ gogetvers checkout -f MANIFEST [PATH]
     If any of the dependencies have local modifications then
     no work is performed.
 
-gogetvers generate -f MANIFEST [-g GOFILE] [-n PACKAGENAME] [PATH]
+gogetvers generate [-f MANIFEST] [-g GOFILE] [-n PACKAGENAME] [PATH]
     Create a go source file with version information at PATH
-    if provided or in current directory otherwise using MANIFEST
-    file.  GOFILE is the output filename or generated_gogetvers.go
-    if omitted.  By default PACKAGENAME will be extracted from
-    MANIFEST; use this option to specify another name (i.e. for
-    'main').
+    using MANIFEST file.  GOFILE is the output filename or 
+	generated_gogetvers.go if omitted.  By default PACKAGENAME will 
+	be extracted from MANIFEST; use this option to specify another 
+	name (i.e. for 'main').
 
 gogetvers make [-f FILE] [PATH]
     Create manifest information for golang package at PATH; or
@@ -66,7 +74,7 @@ gogetvers print [-f MANIFEST] | [PATH]
     defaults to current directory; MANIFEST defaults to
     gogetvers.manifest.
 
-gogetvers rebuild -f MANIFEST [PATH]
+gogetvers rebuild [-f MANIFEST] [PATH]
     Rebuild package structure described by MANIFEST at PATH;
     or in current directory if PATH is omitted.  If any of
     the dependencies described by MANIFEST already exist on

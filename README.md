@@ -10,10 +10,9 @@ It avoids all the nonsense with *vendor*, doesn't mangle import names
 inside your existing project, doesn't otherwise copy dependencies
 into your project, and uses the standard golang tools to do its job.
 
-I consider this approach to be more *pure* in terms of golang's initial design concepts:
-* Your project and its dependencies only exist under GOPATH and nowhere else.
-* The existing golang tools (i.e. `go generate`) are used instead of introducing
-makefiles or similar depedencies.
+I consider this approach more pure because it uses standard golang or git commands
+without introducing extra dependencies and allows all of your source to
+exist in GOPATH/src the way the language designers intended.
 
 ##How does it work?
 gogetvers analyzes a golang package and its dependencies and generates a 
@@ -256,7 +255,4 @@ gogetvers considers a dependency *trackable* if it has a .git directory in its r
 directory or in any of its parent directories.  If the .git directory is 
 in a parent directory that excludes the dependency via .gitignore then gogetvers 
 considers the dependency *tracked* even though it is ignored by source code control.
-
-##@TODO
-+ Get package name automatically with: `go list -f {{Name}}`
 

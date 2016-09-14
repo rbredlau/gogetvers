@@ -4,10 +4,10 @@ import (
 	"strings"
 )
 
-var VersionInfo = VersionInfoType{"a3f9df98", []struct {
+var VersionInfo = VersionInfoType{"c74f9e1d", []struct {
 	Name    string
 	Version string
-}{{"gogetvers", "a3f9df98"}}}
+}{{"gogetvers", "c74f9e1d"}}}
 
 type VersionInfoType struct {
 	Version      string

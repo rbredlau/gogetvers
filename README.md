@@ -59,9 +59,9 @@ gogetvers checkout [-f MANIFEST] [PATH]
 gogetvers generate [-f MANIFEST] [-g GOFILE] [-n PACKAGENAME] [PATH]
     Create a go source file with version information at PATH
     using MANIFEST file.  GOFILE is the output filename or 
-	generated_gogetvers.go if omitted.  By default PACKAGENAME will 
-	be extracted from MANIFEST; use this option to specify another 
-	name (i.e. for 'main').
+    generated_gogetvers.go if omitted. If PACKAGENAME is omitted
+    gogetvers will try and auto-detect it; if that fails then
+    it will be read from the MANIFEST file.
 
 gogetvers make [-f FILE] [PATH]
     Create manifest information for golang package at PATH; or
@@ -196,8 +196,8 @@ $ gogetvers generate $gopath/src/myproject
 ```
 $ gogetvers generate -f $GOPATH/src/myproject/gogetvers.manifest $gopath/src/myproject
 ```
-By default `generate` uses the package name found in manifest; if you need to provide
-a different name (such as `main`), then use the `-n` option:
+`generate` should be able to auto-detect the package name, but if it can't use the `-n`
+flag to specify it.
 ```
 $ gogetvers generate -f $GOPATH/src/myproject/gogetvers.manifest -n main $gopath/src/myproject
 ```

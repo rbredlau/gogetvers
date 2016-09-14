@@ -1,6 +1,6 @@
 package gogetvers
 
-const version_template = `
+const versionTemplate = `
 package $PACKAGE_NAME
 
 import(

@@ -48,7 +48,7 @@ func (g *GoGetVers) Generate(outputFile, packageName string) error {
 	if packageName == "" {
 		packageName = filepath.Base(g.PackageInfo.PackageDir)
 	}
-	template := strings.Replace(version_template, "$PACKAGE_NAME", packageName, -1)
+	template := strings.Replace(versionTemplate, "$PACKAGE_NAME", packageName, -1)
 	template = strings.Replace(template, "$VARNAME", "VersionInfo", -1)
 	template = strings.Replace(template, "$TYPE_NAME", "VersionInfoType", -1)
 	template = strings.Replace(template, "$VERSION", fmt.Sprintf("\"%v\"", g.PackageInfo.Git.Describe), -1)

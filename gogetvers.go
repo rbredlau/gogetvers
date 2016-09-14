@@ -256,7 +256,7 @@ func (g *GoGetVers) Release(gofile, packageName, tag, message string) error {
 }
 
 // Simplifies tagging of a feature or development branch.
-func (g *GoGetVers) Tag(tag string) error {
+func (g *GoGetVers) Tag(gofile, packageName, tag string) error {
 	if g == nil {
 		return errors.New("nil receiver")
 	}
@@ -276,8 +276,18 @@ func (g *GoGetVers) Tag(tag string) error {
 		g.Status.Error(err)
 		return err
 	}
-	// TODO gogetvers make
-	// TODO git add git commit
+	//
+	err = g.Make()
+	if err != nil {
+		g.Status.Error(err)
+		return err
+	}
+	//
+	err = g.Generate(gofile, packageName)
+	if err != nil {
+		g.Status.Error(err)
+		return err
+	}
 	//
 	return g.Make()
 }

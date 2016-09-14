@@ -261,8 +261,8 @@ gogetvers release [-g GOFILE] [-n PACKAGENAME] [-m MESSAGE] -t TAG [PATH]
 
 gogetvers tag -t TAG [PATH]
     Tag is similar to 'release' except the tag is not annotated and
-    the check for local modifications is not performed.  'tag' is
-    suitable for tagging development or feature branches.  The
+    the check for local modifications is not performed.  This command
+	is suitable for tagging development or feature branches.  The
     following commands are performed:
       + git tag -d TAG
       + git tag TAG

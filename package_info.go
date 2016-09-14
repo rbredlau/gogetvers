@@ -10,6 +10,7 @@ import (
 	"strings"
 )
 
+// PackageInfo summarizes a package and its dependencies.
 type PackageInfo struct {
 	PackageDir string // Package source directory; absolute path.
 	RootDir    string // The root directory that contains everything.
@@ -22,6 +23,8 @@ type PackageInfo struct {
 	*PathsComposite
 }
 
+// Create a new PackageInfo by analyzing the package at packageDir
+// with go-src path located at rootDir.
 func NewPackageInfo(packageDir, rootDir string) *PackageInfo {
 	rv := &PackageInfo{
 		PackageDir:    packageDir,
@@ -33,6 +36,7 @@ func NewPackageInfo(packageDir, rootDir string) *PackageInfo {
 	return rv
 }
 
+// Creates the embedded PathsComposite type within PackageInfo.
 func (p *PackageInfo) SetPathsComposite() {
 	if p != nil {
 		p.PathsComposite = NewPathsComposite(&p.PackageDir, &p.RootDir)
@@ -283,6 +287,7 @@ func (p *PackageInfo) getUntrackedNames() []string {
 	return rv
 }
 
+// Strip prefix from all path related members.
 func (p *PackageInfo) StripPathPrefix(prefix string) {
 	if p == nil {
 		return
@@ -296,6 +301,7 @@ func (p *PackageInfo) StripPathPrefix(prefix string) {
 	}
 }
 
+// Prepend prefix to all path related members.
 func (p *PackageInfo) SetPathPrefix(prefix string) {
 	if p == nil {
 		return
@@ -309,6 +315,7 @@ func (p *PackageInfo) SetPathPrefix(prefix string) {
 	}
 }
 
+// Forward PathsToSlash() to all appropriate members.
 func (p *PackageInfo) PathsToSlash() {
 	if p == nil {
 		return
@@ -322,6 +329,7 @@ func (p *PackageInfo) PathsToSlash() {
 	}
 }
 
+// Forward PathsFromSlash() to all appropriate members.
 func (p *PackageInfo) PathsFromSlash() {
 	if p == nil {
 		return

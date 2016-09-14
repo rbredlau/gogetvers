@@ -108,7 +108,6 @@ gogetvers tag -t TAG [PATH]
 ###gogetvers make
 Makes the manifest file.
 ```
-# Make manifest for myproject
 $ cd $GOPATH/src/myproject
 $ gogetvers make
 ```
@@ -129,7 +128,6 @@ $ gogetvers make -f ~/current.manifest $GOPATH/src/myproject
 ###gogetvers print
 Prints a summary of the manifest file.
 ```
-# Print existing manifest in current directory.
 $ cd $GOPATH/src/myproject
 $ gogetvers print
 ```
@@ -147,6 +145,13 @@ Clones the repositories from the manifest into a given path; none
 of the repositories in the manifest can exist in the destination path.
 ```
 $ mkdir foo
+$ cp ~/some/project/gogetvers.manifest foo
+$ cd foo
+$ gogetvers rebuild
+```
+*or*
+```
+$ mkdir foo
 $ gogetvers rebuild -f $GOPATH/src/myproject/gogetvers.manifest foo
 ```
 *or*
@@ -157,7 +162,7 @@ $ gogetvers rebuild -f $GOPATH/src/myproject/gogetvers.manifest
 ```
 
 ###gogetvers checkout
-The same as rebuild except the repositories from the manifest CAN exist on disk;
+The same as `rebuild` except the repositories from the manifest CAN exist on disk;
 they will be checked out with the hash described in the manifest or cloned if
 it doesn't exist on disk.  `checkout` can only be used if existing repositories
 do not have local modifications.
@@ -165,8 +170,6 @@ do not have local modifications.
 $ cd $GOPATH/src/myproject
 $ git checkout oldversion
 $ gogetvers checkout
-$ # Dependencies of myproject under $GOPATH will have be reverted to the
-$ # hashes described in ./gogetvers.manifest
 ```
 
 ###gogetvers generate
@@ -177,6 +180,11 @@ contained in a manifest file.
 `VersionInfo` has two public methods:
 + `GetVersion()` returns the version information for the primary package.
 + `GetVersionVerbose()` returns version information for the package and all dependencies.
+```
+$ cd $GOPATH/src/myproject
+$ gogetvers generate
+```
+*or*
 ```
 $ gogetvers generate -f gogetvers.manifest 
 ```

@@ -30,11 +30,11 @@ func NewGoGetVers(path, file string, statusWriter io.Writer) (*GoGetVers, error)
 }
 
 // Use package name from manifest file if packageName is empty string.
-func (g *GoGetVers) Const(outputFile, packageName string) error {
+func (g *GoGetVers) Generate(outputFile, packageName string) error {
 	if g == nil {
 		return errors.New("nil receiver")
 	}
-	g.Status.Printf("Creating constant file from manifest @ %v\n", g.File)
+	g.Status.Printf("Generating version file from manifest @ %v\n", g.File)
 	g.Status.Printf("Output location @ %v\n", g.Path)
 	//
 	var err error
@@ -224,7 +224,7 @@ func (g *GoGetVers) Release(gofile, packageName, tag, message string) error {
 		return err
 	}
 	//
-	err = g.Const(gofile, packageName)
+	err = g.Generate(gofile, packageName)
 	if err != nil {
 		g.Status.Error(err)
 		return err

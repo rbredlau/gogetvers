@@ -37,18 +37,6 @@ gogetvers -v|--version
 gogetvers [-h|--help]
     Print help information.
 
-gogetvers make [-f FILE] [PATH]
-    Create manifest information for golang package at PATH; or
-    in current directory if PATH is omitted. FILE can be used
-    to specify the output location of the manifest information;
-    default FILE is gogetvers.manifest in PATH.
-
-gogetvers rebuild -f MANIFEST [PATH]
-    Rebuild package structure described by MANIFEST at PATH;
-    or in current directory if PATH is omitted.  If any of
-    the dependencies described by MANIFEST already exists on
-    the file system then no work is performed.
-
 gogetvers checkout -f MANIFEST [PATH]
     Does the same as the 'rebuild' command with the following
     differences:
@@ -59,18 +47,52 @@ gogetvers checkout -f MANIFEST [PATH]
     If any of the dependencies have local modifications then
     no work is performed.
 
-gogetvers print [-f MANIFEST] | [PATH]
-    Print a summary of the MANIFEST file in PATH.  PATH
-    defaults to current directory; MANIFEST defaults to
-    gogetvers.manifest.
-
-gogetvers const -f MANIFEST [-g GOFILE] [-n PACKAGENAME] [PATH]
+gogetvers generate -f MANIFEST [-g GOFILE] [-n PACKAGENAME] [PATH]
     Create a go source file with version information at PATH
     if provided or in current directory otherwise using MANIFEST
     file.  GOFILE is the output filename or generated_gogetvers.go
     if omitted.  By default PACKAGENAME will be extracted from
     MANIFEST; use this option to specify another name (i.e. for
     'main').
+
+gogetvers make [-f FILE] [PATH]
+    Create manifest information for golang package at PATH; or
+    in current directory if PATH is omitted. FILE can be used
+    to specify the output location of the manifest information;
+    default FILE is gogetvers.manifest in PATH.
+
+gogetvers print [-f MANIFEST] | [PATH]
+    Print a summary of the MANIFEST file in PATH.  PATH
+    defaults to current directory; MANIFEST defaults to
+    gogetvers.manifest.
+
+gogetvers rebuild -f MANIFEST [PATH]
+    Rebuild package structure described by MANIFEST at PATH;
+    or in current directory if PATH is omitted.  If any of
+    the dependencies described by MANIFEST already exist on
+    the file system then no work is performed.
+
+gogetvers release [-g GOFILE] [-n PACKAGENAME] [-m MESSAGE] -t TAG [PATH]
+    Creates an annotated tag for a project.  The following
+    commands are performed:
+      + git tag -a TAG [-m MESSAGE]
+      + git push origin TAG
+      + gogetvers make PATH
+      + gogetvers generate -g GOFILE -n PACKAGENAME PATH
+      + git add . && git commit [-m MESSAGE]
+    If omitted PATH will be the current directory.  Release
+    requires that the project at PATH and all of its dependencies
+    do not have local modifications.  This is a convenience
+    command to make a release version of a package.
+
+gogetvers tag -t TAG [PATH]
+    Tag is similar to 'release' except the tag is not annotated and
+    the check for local modifications is not performed.  'tag' is
+    suitable for tagging development or feature branches.  The
+    following commands are performed:
+      + git tag -d TAG
+      + git tag TAG
+      + gogetvers make PATH
 ```
 
 ##Examples

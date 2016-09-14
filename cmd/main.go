@@ -51,7 +51,7 @@ func main() {
 	case "-h", "--help":
 		args = args[1:]
 		dousage()
-	case "checkout", "const", "make", "print", "rebuild", "release", "tag":
+	case "checkout", "generate", "make", "print", "rebuild", "release", "tag":
 		sub := args[0]
 		args = args[1:]
 		parsedPath := false
@@ -133,8 +133,8 @@ func main() {
 		switch sub {
 		case "checkout":
 			err = docheckout()
-		case "const":
-			err = doconst(opts.dashg, opts.dashn)
+		case "generate":
+			err = dogenerate(opts.dashg, opts.dashn)
 		case "make":
 			err = domake()
 		case "print":
@@ -188,11 +188,11 @@ func dotag(tag string) error {
 	return goget.Tag(tag)
 }
 
-func doconst(gofile, packageName string) error {
+func dogenerate(gofile, packageName string) error {
 	if gofile == "" {
 		gofile = filepath.Join(goget.Path, "generated_gogetvers.go")
 	}
-	return goget.Const(gofile, packageName)
+	return goget.Generate(gofile, packageName)
 }
 
 func doversion(long bool) {
@@ -221,7 +221,7 @@ gogetvers checkout -f MANIFEST [PATH]
     If any of the dependencies have local modifications then
     no work is performed.
 
-gogetvers const -f MANIFEST [-g GOFILE] [-n PACKAGENAME] [PATH]
+gogetvers generate -f MANIFEST [-g GOFILE] [-n PACKAGENAME] [PATH]
     Create a go source file with version information at PATH
     if provided or in current directory otherwise using MANIFEST
     file.  GOFILE is the output filename or generated_gogetvers.go
@@ -252,7 +252,7 @@ gogetvers release [-g GOFILE] [-n PACKAGENAME] [-m MESSAGE] -t TAG [PATH]
       + git tag -a TAG [-m MESSAGE]
       + git push origin TAG
       + gogetvers make PATH
-      + gogetvers const -g GOFILE -n PACKAGENAME PATH
+      + gogetvers generate -g GOFILE -n PACKAGENAME PATH
       + git add . && git commit [-m MESSAGE]
     If omitted PATH will be the current directory.  Release
     requires that the project at PATH and all of its dependencies

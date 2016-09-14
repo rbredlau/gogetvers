@@ -7,11 +7,14 @@ import(
 	"strings"
 )
 
+// Global variable containing version information from
+// gogetvers.
 var $VARNAME = $TYPE_NAME{$VERSION,[]struct{
 	Name string
 	Version string
 } $DEPENDENCIES}
 
+// Contains version information for package and its dependencies.
 type $TYPE_NAME struct {
 	Version string
 	Dependencies []struct{
@@ -20,10 +23,12 @@ type $TYPE_NAME struct {
 	}
 }
 
-func (v $TYPE_NAME) GetVersion(binaryName string) string {
-	return binaryName + " version " + v.Version
+// Returns the version for the package.
+func (vt $TYPE_NAME) GetVersion(binaryName string) string {
+	return binaryName + " version " + vt.Version
 }
 
+// Returns the version for the package and all of its dependencies.
 func (vt $TYPE_NAME) GetVersionVerbose(binaryName string) string {
 	v := vt.GetVersion(binaryName)
 	deps := []string{}

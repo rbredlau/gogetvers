@@ -176,7 +176,7 @@ func dorebuild() error {
 
 func dorelease(gofile, packageName, tag, message string) error {
 	if gofile == "" {
-		gofile = "generated_gogetvers.go"
+		gofile = filepath.Join(goget.Path, "generated_gogetvers.go")
 	}
 	if message == "" {
 		message = tag + " by gogetvers"
@@ -190,7 +190,7 @@ func dotag(tag string) error {
 
 func doconst(gofile, packageName string) error {
 	if gofile == "" {
-		gofile = "generated_gogetvers.go"
+		gofile = filepath.Join(goget.Path, "generated_gogetvers.go")
 	}
 	return goget.Const(gofile, packageName)
 }

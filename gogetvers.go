@@ -203,6 +203,7 @@ func (g *GoGetVers) Release(gofile, packageName, tag, message string) error {
 		message = tag
 	}
 	gittag := NewCommandGitTagAnnotated(tag, message)
+	g.Status.Writeln(gittag.String())
 	err = gittag.Exec(g.Path)
 	if err != nil {
 		g.Status.Error(err)
@@ -210,6 +211,7 @@ func (g *GoGetVers) Release(gofile, packageName, tag, message string) error {
 	}
 	//
 	gittagpush := NewCommandGitTagPush(tag, "origin")
+	g.Status.Writeln(gittagpush.String())
 	err = gittagpush.Exec(g.Path)
 	if err != nil {
 		g.Status.Error(err)
@@ -236,6 +238,7 @@ func (g *GoGetVers) Release(gofile, packageName, tag, message string) error {
 	}
 	//
 	gitcommit := NewCommand("git", "commit", "-m", message)
+	g.Status.Writeln(gitcommit.String())
 	gitcommit.Exec(g.Path)
 	if err != nil {
 		g.Status.Error(err)

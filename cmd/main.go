@@ -12,22 +12,29 @@ var (
 	goget *gv.GoGetVers
 )
 
+type options struct {
+	path  string
+	file  string
+	dashg string
+	dashm string
+	dashn string
+	dasht string
+}
+
 func main() {
-	var cwd, path, file string
-	var dashg, dashn string
+	var err error
+	opts := options{}
 	exitCode := 0
 	defer func() {
 		os.Exit(exitCode)
 	}()
 	// Get current path.
-	cwd, err := os.Getwd()
+	opts.path, err = os.Getwd()
 	if err != nil {
 		fmt.Println("Error:", err.Error())
 		exitCode = 1
 		return
 	}
-	// Path starts as current path.
-	path = cwd
 	// Parse arguments.
 	args := append([]string{}, os.Args[1:]...)
 	if len(args) == 0 {
@@ -44,20 +51,23 @@ func main() {
 	case "-h", "--help":
 		args = args[1:]
 		dousage()
-	case "checkout", "const", "make", "print", "rebuild":
+	case "checkout", "const", "make", "print", "rebuild", "release", "tag":
 		sub := args[0]
 		args = args[1:]
 		parsedPath := false
+		// Options parsing...
 		for len(args) > 0 {
 			curr := len(args)
-			opts := []struct {
+			tempopts := []struct {
 				flag   string
 				target *string
 			}{
-				{"-f", &file},
-				{"-g", &dashg},
-				{"-n", &dashn}}
-			for _, opt := range opts {
+				{"-f", &opts.file},
+				{"-g", &opts.dashg},
+				{"-m", &opts.dashm},
+				{"-n", &opts.dashn},
+				{"-t", &opts.dasht}}
+			for _, opt := range tempopts {
 				if len(args) > 0 && args[0] == opt.flag {
 					if len(args) >= 2 {
 						*opt.target = args[1]
@@ -72,7 +82,7 @@ func main() {
 			}
 			//
 			if len(args) == 1 {
-				path = args[0]
+				opts.path = args[0]
 				args = args[1:]
 				parsedPath = true
 			}
@@ -81,6 +91,9 @@ func main() {
 				args = args[1:]
 			}
 		}
+		// End options parsing.
+		//
+		// If command is 'checkout' and PATH wasn't parsed, then use env-GOPATH
 		if sub == "checkout" && !parsedPath {
 			envpath := os.Getenv("GOPATH")
 			if envpath == "" {
@@ -89,21 +102,25 @@ func main() {
 				return
 			}
 		}
-		if !gv.IsDir(path) {
-			fmt.Println(fmt.Sprintf("Error: PATH is not a directory: %v", path))
+		// All commands require a path that exists
+		if !gv.IsDir(opts.path) {
+			fmt.Println(fmt.Sprintf("Error: PATH is not a directory: %v", opts.path))
 			exitCode = 1
 			return
 		}
+		// Only 'make' and 'print' commands have a default file name, for
+		// any other commands where -f was provided ensure the file exists.
 		if sub != "make" && sub != "print" {
-			if file != "" && !gv.IsFile(file) {
-				fmt.Println(fmt.Sprintf("Error: FILE is not a file: %v", file))
+			if opts.file != "" && !gv.IsFile(opts.file) {
+				fmt.Println(fmt.Sprintf("Error: FILE is not a file: %v", opts.file))
 				exitCode = 1
 				return
 			}
-		} else if (sub == "make" || sub == "print") && file == "" {
-			file = filepath.Join(path, "gogetvers.manifest")
+		} else if (sub == "make" || sub == "print") && opts.file == "" {
+			opts.file = filepath.Join(opts.path, "gogetvers.manifest")
 		}
-		goget, err = gv.NewGoGetVers(path, file, os.Stdout)
+		// Create our GGV object.
+		goget, err = gv.NewGoGetVers(opts.path, opts.file, os.Stdout)
 		if err != nil {
 			fmt.Printf("Error: %v\n", err.Error())
 			exitCode = 1
@@ -113,13 +130,17 @@ func main() {
 		case "checkout":
 			err = docheckout()
 		case "const":
-			err = doconst(dashg, dashn)
+			err = doconst(opts.dashg, opts.dashn)
 		case "make":
 			err = domake()
 		case "print":
 			err = doprint()
 		case "rebuild":
 			err = dorebuild()
+		case "release":
+			err = dorelease(opts.dasht, opts.dashm)
+		case "tag":
+			err = dotag(opts.dasht)
 		default:
 			err = errors.New("no sub command")
 		}
@@ -149,6 +170,14 @@ func dorebuild() error {
 	return goget.Rebuild()
 }
 
+func dorelease(tag, message string) error {
+	return goget.Release(tag, message)
+}
+
+func dotag(tag string) error {
+	return goget.Tag(tag)
+}
+
 func doconst(gofile, packageName string) error {
 	if gofile == "" {
 		gofile = "generated_gogetvers.go"
@@ -172,18 +201,6 @@ gogetvers -v|--version
 gogetvers [-h|--help]
     Print help information.
 
-gogetvers make [-f FILE] [PATH]
-    Create manifest information for golang package at PATH; or
-    in current directory if PATH is omitted. FILE can be used
-    to specify the output location of the manifest information;
-    default FILE is gogetvers.manifest in PATH.
-
-gogetvers rebuild -f MANIFEST [PATH]
-    Rebuild package structure described by MANIFEST at PATH;
-    or in current directory if PATH is omitted.  If any of
-    the dependencies described by MANIFEST already exist on
-    the file system then no work is performed.
-
 gogetvers checkout -f MANIFEST [PATH]
     Does the same as the 'rebuild' command with the following
     differences:
@@ -194,11 +211,6 @@ gogetvers checkout -f MANIFEST [PATH]
     If any of the dependencies have local modifications then
     no work is performed.
 
-gogetvers print [-f MANIFEST] | [PATH]
-    Print a summary of the MANIFEST file in PATH.  PATH
-    defaults to current directory; MANIFEST defaults to
-    gogetvers.manifest.
-
 gogetvers const -f MANIFEST [-g GOFILE] [-n PACKAGENAME] [PATH]
     Create a go source file with version information at PATH
     if provided or in current directory otherwise using MANIFEST
@@ -206,6 +218,45 @@ gogetvers const -f MANIFEST [-g GOFILE] [-n PACKAGENAME] [PATH]
     if omitted.  By default PACKAGENAME will be extracted from
     MANIFEST; use this option to specify another name (i.e. for
     'main').
+
+gogetvers make [-f FILE] [PATH]
+    Create manifest information for golang package at PATH; or
+    in current directory if PATH is omitted. FILE can be used
+    to specify the output location of the manifest information;
+    default FILE is gogetvers.manifest in PATH.
+
+gogetvers print [-f MANIFEST] | [PATH]
+    Print a summary of the MANIFEST file in PATH.  PATH
+    defaults to current directory; MANIFEST defaults to
+    gogetvers.manifest.
+
+gogetvers rebuild -f MANIFEST [PATH]
+    Rebuild package structure described by MANIFEST at PATH;
+    or in current directory if PATH is omitted.  If any of
+    the dependencies described by MANIFEST already exist on
+    the file system then no work is performed.
+
+gogetvers release [-m MESSAGE] -t TAG [PATH]
+    Creates an annotated tag for a project.  The following
+    commands are performed:
+      + git tag -a TAG [-m MESSAGE]
+      + git push origin TAG
+      + gogetvers make PATH
+      + git add . && git commit [-m MESSAGE]
+    If omitted PATH will be the current directory.  Release
+    requires that the project at PATH and all of its dependencies
+    do not have local modifications.  This is a convenience
+    command to make a release version of a package.
+
+gogetvers tag -t TAG [PATH]
+    Tag is similar to 'release' except the tag is not annotated and
+    the check for local modifications is not performed.  'tag' is
+    suitable for tagging development or feature branches.  The
+    following commands are performed:
+      + git tag -d TAG
+      + git tag TAG
+	  + gogetvers make PATH
+
 `
 	fmt.Printf(usage)
 }

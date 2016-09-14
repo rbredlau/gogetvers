@@ -169,6 +169,52 @@ func (g *GoGetVers) Rebuild() error {
 	return nil
 }
 
+func (g *GoGetVers) Release(tag, message string) error {
+	if g == nil {
+		return errors.New("nil receiver")
+	}
+	var err error
+	//
+	if tag == "" {
+		return errors.New("tag is empty")
+	}
+	// Get package information because we need to check for local modifications.
+	g.PackageInfo, err = getPackageInfo(g.Path, nil)
+	if err != nil {
+		g.Status.Error(err)
+		return err
+	}
+	//
+	gits := g.PackageInfo.getGits()
+	gitsWMods := []string{}
+	for _, git := range gits {
+		if git.Status != "" {
+			gitsWMods = append(gitsWMods, git.HomeDir)
+		}
+	}
+	if len(gitsWMods) > 0 {
+		err := errors.New("The following repositories have local modifications: " + strings.Join(gitsWMods, ", "))
+		g.Status.Error(err)
+		return err
+
+	}
+	// TODO FILL IN REST
+	//
+	return nil
+}
+
+func (g *GoGetVers) Tag(tag string) error {
+	if g == nil {
+		return errors.New("nil receiver")
+	}
+	//
+	if tag == "" {
+		return errors.New("tag is empty")
+	}
+	//
+	return nil
+}
+
 func (g *GoGetVers) Make() error {
 	if g == nil {
 		return errors.New("nil receiver")

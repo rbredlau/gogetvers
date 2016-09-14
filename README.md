@@ -202,6 +202,28 @@ a different name (such as `main`), then use the `-n` option:
 $ gogetvers generate -f $GOPATH/src/myproject/gogetvers.manifest -n main $gopath/src/myproject
 ```
 
+###gogetvers tag
+Use `tag` to build a manifest file and tag it with a lightweight git tag (i.e.
+non-annotated tag).  This should be done with when creating a new development
+or feature branch so as not to accidentally have your program print version
+information from the latest production release.
+```
+$ git checkout -b new-feature
+$ gogetvers tag -t 'new-feature branch'
+```
+
+###gogetvers release
+Use `release` to create a versioned production release of your package.  `release`
+creates an annotated tag and pushes it to the git origin.  It also recreates the
+manifest file and generated version file and commits them to git. `release` will
+perform no work if the package or any of its dependencies have local modifications.
+```
+$ git checkout master
+$ git merge --no-ff develop
+$ gogetvers release -t 1.0.0
+$ go build
+```
+
 ##This looks great but there's a HUGE problem...
 gogetvers doesn't make a *deep copy* of dependencies.  If the git repositories
 move or disappear then gogetvers can't `rebuild` or `checkout` old versions.  (*You

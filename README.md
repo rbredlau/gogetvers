@@ -161,7 +161,32 @@ $ # Dependencies of myproject under $GOPATH will have be reverted to the
 $ # hashes described in ./gogetvers.manifest
 ```
 
-###This looks great but there's a HUGE problem...
+###gogetvers generate
+This generates a golang source file with a `type VersionInfoType struct` and a 
+single global variable named `VersionInfo` that contains the version information
+contained in a manifest file.
+
+`VersionInfo` has two public methods:
++ `GetVersion()` returns the version information for the primary package.
++ `GetVersionVerbose()` returns version information for the package and all dependencies.
+```
+$ gogetvers generate -f gogetvers.manifest 
+```
+*or*
+```
+$ gogetvers generate $gopath/src/myproject
+```
+*or*
+```
+$ gogetvers generate -f $GOPATH/src/myproject/gogetvers.manifest $gopath/src/myproject
+```
+By default `generate` uses the package name found in manifest; if you need to provide
+a different name (such as `main`), then use the `-n` option:
+```
+$ gogetvers generate -f $GOPATH/src/myproject/gogetvers.manifest -n main $gopath/src/myproject
+```
+
+##This looks great but there's a HUGE problem...
 gogetvers doesn't make a *deep copy* of dependencies.  If the git repositories
 move or disappear then gogetvers can't `rebuild` or `checkout` old versions.  (*You
 can always edit the manifest by hand to point at new locations if necessary though.*)
@@ -187,12 +212,12 @@ If you absolutely must immortalize and forever make available everything your
 project was built with - or if you disagree with the reasoning given - then
 gogetvers is not for you.
 
-###Known bugs
+##Known bugs
 gogetvers considers a dependency *trackable* if it has a .git directory in its root 
 directory or in any of its parent directories.  If the .git directory is 
 in a parent directory that excludes the dependency via .gitignore then gogetvers 
 considers the dependency *tracked* even though it is ignored by source code control.
 
-###@TODO
-+ Implement `gogetvers tag`
+##@TODO
++ Get package name automatically with: `go list -f {{Name}}`
 

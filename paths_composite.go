@@ -5,10 +5,12 @@ import (
 	"strings"
 )
 
+// Other types embed this type to avoid cut and paste.
 type PathsComposite struct {
 	Paths []*string
 }
 
+// Creates a new PathsComposite type.
 func NewPathsComposite(paths ...*string) *PathsComposite {
 	rv := &PathsComposite{Paths: []*string{}}
 	for _, v := range paths {
@@ -17,6 +19,7 @@ func NewPathsComposite(paths ...*string) *PathsComposite {
 	return rv
 }
 
+// Removes prefix from all of the paths within PathsComposite.
 func (pc *PathsComposite) StripPathPrefix(prefix string) {
 	if pc == nil {
 		return
@@ -27,6 +30,7 @@ func (pc *PathsComposite) StripPathPrefix(prefix string) {
 	}
 }
 
+// Preprends prefix to all paths within PathsComposite.
 func (pc *PathsComposite) SetPathPrefix(prefix string) {
 	if pc == nil {
 		return
@@ -36,6 +40,7 @@ func (pc *PathsComposite) SetPathPrefix(prefix string) {
 	}
 }
 
+// Calls filepath.ToSlash() on all paths within PathsComposite.
 func (pc *PathsComposite) PathsToSlash() {
 	if pc == nil {
 		return
@@ -45,6 +50,7 @@ func (pc *PathsComposite) PathsToSlash() {
 	}
 }
 
+// Calls filepath.FromSlash() on all paths within PathsComposite.
 func (pc *PathsComposite) PathsFromSlash() {
 	if pc == nil {
 		return

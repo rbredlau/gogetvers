@@ -10,13 +10,17 @@ import (
 	"strings"
 )
 
+// The heavy lifter of the package; the commands exported in the 'cmd'
+// package use a GoGetVers type to do their work.
 type GoGetVers struct {
-	Path        string        // Working.Path of gogetvers.
+	Path        string        // Working Path of gogetvers.
 	File        string        // Path of package info file.
 	PackageInfo *PackageInfo  // The package info
 	Status      *StatusWriter // The status writer.
 }
 
+// Create a new GoGetVers that will have working path 'path' and input/output file 'file.'
+// If statusWriter is non-nil then GoGetVers will write output there.
 func NewGoGetVers(path, file string, statusWriter io.Writer) (*GoGetVers, error) {
 	abs, err := filepath.Abs(path)
 	if err != nil {
@@ -48,7 +52,7 @@ func (g *GoGetVers) Generate(outputFile, packageName string) error {
 	if packageName == "" {
 		packageName = filepath.Base(g.PackageInfo.PackageDir)
 	}
-	template := strings.Replace(version_template, "$PACKAGE_NAME", packageName, -1)
+	template := strings.Replace(versionTemplate, "$PACKAGE_NAME", packageName, -1)
 	template = strings.Replace(template, "$VARNAME", "VersionInfo", -1)
 	template = strings.Replace(template, "$TYPE_NAME", "VersionInfoType", -1)
 	template = strings.Replace(template, "$VERSION", fmt.Sprintf("\"%v\"", g.PackageInfo.Git.Describe), -1)
@@ -86,6 +90,7 @@ func (g *GoGetVers) Generate(outputFile, packageName string) error {
 	return nil
 }
 
+// Attempts to clone or checkout the package and its dependencies.
 func (g *GoGetVers) Checkout() error {
 	if g == nil {
 		return errors.New("nil receiver")
@@ -132,6 +137,7 @@ func (g *GoGetVers) Checkout() error {
 	return nil
 }
 
+// Attempts to rebuild the package and its dependencies.
 func (g *GoGetVers) Rebuild() error {
 	if g == nil {
 		return errors.New("nil receiver")
@@ -169,6 +175,7 @@ func (g *GoGetVers) Rebuild() error {
 	return nil
 }
 
+// Simplifies creating and tagging a production release of a package.
 func (g *GoGetVers) Release(gofile, packageName, tag, message string) error {
 	if g == nil {
 		return errors.New("nil receiver")
@@ -248,6 +255,7 @@ func (g *GoGetVers) Release(gofile, packageName, tag, message string) error {
 	return nil
 }
 
+// Simplifies tagging of a feature or development branch.
 func (g *GoGetVers) Tag(tag string) error {
 	if g == nil {
 		return errors.New("nil receiver")
@@ -268,10 +276,13 @@ func (g *GoGetVers) Tag(tag string) error {
 		g.Status.Error(err)
 		return err
 	}
+	// TODO gogetvers make
+	// TODO git add git commit
 	//
 	return g.Make()
 }
 
+// Makes a manifest file for the package.
 func (g *GoGetVers) Make() error {
 	if g == nil {
 		return errors.New("nil receiver")
@@ -323,6 +334,7 @@ func (g *GoGetVers) Make() error {
 	return nil
 }
 
+// Prints a summary of a package manifest.
 func (g *GoGetVers) Print() error {
 	if g == nil {
 		return errors.New("nil receiver")

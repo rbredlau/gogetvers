@@ -4,7 +4,7 @@ import (
 	"os"
 )
 
-// Determines if path is a file; returns true if it is.
+// IsFile determines if path is a file; returns true if it is.
 func IsFile(path string) bool {
 	if len(path) == 0 {
 		return false
@@ -14,7 +14,7 @@ func IsFile(path string) bool {
 
 }
 
-// Determines if path is a directory; returns true if it is.
+// IsDir determines if path is a directory; returns true if it is.
 func IsDir(path string) bool {
 	if len(path) == 0 {
 		return false
@@ -23,7 +23,7 @@ func IsDir(path string) bool {
 	return err == nil && finfo.IsDir()
 }
 
-// Makes a directory and any necessary parents.
+// Mkdir makes a directory and any necessary parents.
 func Mkdir(path string, perm os.FileMode) error {
 	return os.MkdirAll(path, perm)
 }

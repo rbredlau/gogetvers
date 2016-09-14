@@ -4,11 +4,14 @@ import (
 	"strings"
 )
 
+// Global variable containing version information from
+// gogetvers.
 var VersionInfo = VersionInfoType{"c74f9e1d", []struct {
 	Name    string
 	Version string
 }{{"gogetvers", "c74f9e1d"}}}
 
+// Contains version information for package and its dependencies.
 type VersionInfoType struct {
 	Version      string
 	Dependencies []struct {
@@ -17,10 +20,12 @@ type VersionInfoType struct {
 	}
 }
 
-func (v VersionInfoType) GetVersion(binaryName string) string {
-	return binaryName + " version " + v.Version
+// Returns the version for the package.
+func (vt VersionInfoType) GetVersion(binaryName string) string {
+	return binaryName + " version " + vt.Version
 }
 
+// Returns the version for the package and all of its dependencies.
 func (vt VersionInfoType) GetVersionVerbose(binaryName string) string {
 	v := vt.GetVersion(binaryName)
 	deps := []string{}

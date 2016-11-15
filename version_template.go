@@ -1,5 +1,10 @@
 package gogetvers
 
+type Versioner interface {
+	GetVersion(binaryName string) string
+	GetVersionVerbose(binaryName string) string
+}
+
 const versionTemplate = `
 package $PACKAGE_NAME
 

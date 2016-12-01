@@ -6,10 +6,10 @@ import (
 
 // Global variable containing version information from
 // gogetvers.
-var VersionInfo = VersionInfoType{"1.1.0-0-g00bf75ef", []struct {
+var VersionInfo = VersionInfoType{"1.2.0-0-g407583a3", []struct {
 	Name    string
 	Version string
-}{{"gogetvers", "1.1.0-0-g00bf75ef"}}}
+}{{"gogetvers", "1.2.0-0-g407583a3"}}}
 
 // Contains version information for package and its dependencies.
 type VersionInfoType struct {
